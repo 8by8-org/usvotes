@@ -22,7 +22,6 @@ Flask-SQLAlchemy==2.5.1
 Flask-SSLify==0.1.5
 Flask-WTF==0.15.1
 formfiller==0.3
-gunicorn==20.1.0
 idna==3.2
 itsdangerous==1.1.0
 # our 1.x Flask requires we stay at Jinja < 3.0
@@ -51,6 +50,7 @@ six==1.16.0
 SQLAlchemy==1.4.22
 urllib3==1.26.6
 usaddress==0.5.10
+uwsgi
 Werkzeug==1.0.1
 WTForms==2.3.1
 # WTForms >= 2.3.2 breaks validation of citizenship
