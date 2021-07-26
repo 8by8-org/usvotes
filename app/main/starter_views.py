@@ -295,13 +295,13 @@ def stats():
 
     return render_template('stats.html', stats=stats)
 
-@main.route('/memory/', methods=['GET'])
-def memory():
+@main.route('/memory/<linecount>', methods=['GET'])
+def memory(linecount=20):
     import tracemalloc
     import linecache
     import os
     key_type = 'lineno'
-    limit = 20
+    limit = int(linecount)
     snapshot = tracemalloc.take_snapshot()
     snapshot = snapshot.filter_traces((
         tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
