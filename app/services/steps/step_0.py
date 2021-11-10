@@ -3,11 +3,11 @@ from app.models import ZIPCode, Registrant
 from flask import current_app
 import os
 import sys
-import ksmyvoteinfo
+import myvoteinfo
 import requests
 
 class Step_0(Step):
-    form_requirements = ['name_first', 'name_last', 'dob', 'email']
+    form_requirements = ['state', 'city', 'street', 'name_first', 'name_last', 'dob', 'email']
     step_requirements = ['reg_lookup_complete']
     reg_lookup_complete = False
     reg_found = False
@@ -25,6 +25,9 @@ class Step_0(Step):
 
         if not skip_sos:
             self.reg_found = self.lookup_registration(
+                state=self.form_payload['state'],
+                city=self.form_payload['city'],
+                street=self.form_payload['street'],
                 name_first=self.form_payload['name_first'],
                 name_last=self.form_payload['name_last'],
                 dob=self.form_payload['dob'],
@@ -41,17 +44,26 @@ class Step_0(Step):
         self.next_step = 'Step_1'
         return True
 
-    def lookup_registration(self, name_first, name_last, dob, zipcode):
+    def lookup_registration(self, state, city, street, name_first, name_last, dob, zipcode):
         try:
-            kmvi = ksmyvoteinfo.KsMyVoteInfo()
+            kmvi = myvoteinfo.MyVoteInfo()
             if os.getenv('VOTER_VIEW_URL'):
-                kmvi = ksmyvoteinfo.KsMyVoteInfo(url=os.getenv('VOTER_VIEW_URL'))
+                kmvi = myvoteinfo.MyVoteInfo(url=os.getenv('VOTER_VIEW_URL'))
+            zpcd = int(zipcode)
+            if zpcd >= 71600 and zpcd <= 72999:
+                kmvi = myvoteinfo.MyVoteInfo(state='ar', url='https://www.voterview.ar-nova.org/voterview')
             dob = dob.split('/')
             formatted_dob = "{year}-{month}-{day}".format(year=dob[2], month=dob[0], day=dob[1])
             request = kmvi.lookup(
                 first_name = name_first,
                 last_name = name_last,
                 dob = formatted_dob,
+                zipcode = zipcode,
+                state = state,
+                gender = 'decline',
+                street = street,
+                city = city,
+                email = 'person@email.com'
             )
             if request:
                 sosrecs = request.parsed()

@@ -17,6 +17,9 @@ class DOBField(StringField):
 
 class FormStep0(FlaskForm):
     ref = HiddenField()
+    state = StringField(lazy_gettext(u'0_state'), validators=[DataRequired(message=lazy_gettext(u'Required'))])
+    city = StringField(lazy_gettext(u'0_city'), validators=[DataRequired(message=lazy_gettext(u'Required'))])
+    street = StringField(lazy_gettext(u'0_street'), validators=[DataRequired(message=lazy_gettext(u'Required'))])
     name_first = StringField(lazy_gettext(u'0_first'), validators=[DataRequired(message=lazy_gettext(u'Required'))])
     name_last = StringField(lazy_gettext(u'0_last'), validators=[DataRequired(message=lazy_gettext(u'Required'))])
     dob = DOBField(

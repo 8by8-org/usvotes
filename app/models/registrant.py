@@ -8,7 +8,7 @@ from cryptography.fernet import Fernet
 from sqlalchemy.ext.hybrid import hybrid_property,Comparator
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
-import ksmyvoteinfo
+import myvoteinfo
 import usaddress
 
 def encryptem(data):
