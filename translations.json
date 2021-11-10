@@ -88,6 +88,27 @@
     "en":"Enter your full name in this section. Do not use nicknames or initials. If this application is for a change of name, enter your current name here. We will ask you for your previous name later.",
     "es":"Ingrese su nombre completo en esta sección. No use apodos o iniciales. Si esta aplicación es para un cambio de nombre, ingrese su nombre actual aquí. Le pediremos su nombre anterior más tarde."
   },
+  "0_state_help":{
+    "wiki_step":"0",
+    "ref":"0_state_help",
+    "en":"Enter your state in this section. Either write the full name of your state or your state's abbreviation.",
+    "es":"Ingrese su estado en esta sección. Escriba el nombre completo de su estado o la abreviatura de su estado."
+  },
+  "0_city_help":{
+    "wiki_step":"0",
+    "ref":"0_city_help",
+    "en":"Enter your city in this section.",
+    "es":"Ingrese su ciudad en esta sección."
+  },
+  "0_street_help":{
+    "wiki_step":"0",
+    "ref":"0_street_help",
+    "en":"Enter your street in this section.",
+    "es":"Ingrese su calle en esta sección."
+  },
+  "0_state":{"wiki_step":"0","ref":"0_state","en":"State","es":"Estado"},
+  "0_city":{"wiki_step":"0","ref":"0_city","en":"City","es":"Ciudad"},
+  "0_street":{"wiki_step":"0","ref":"0_street","en":"Street","es":"Calle"},
   "0_first":{"wiki_step":"0","ref":"0_first","en":"First Name","es":"Primer Nombre"},
   "0_last":{"wiki_step":"0","ref":"0_last","en":"Last Name","es":"Apellido "},
   "0_dob":{

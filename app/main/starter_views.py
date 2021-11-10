@@ -47,11 +47,18 @@ def index():
     form = FormStep0()
     if http_session.get('ref'):
         form = FormStep0(ref=http_session.get('ref'))
+        print("http sess")
     elif request.cookies.get('ref'):
+        print("cookies")
         form = FormStep0(ref=request.cookies.get('ref'))
     if registrant:
+        print("registrant")
+        print("ref")
         form = FormStep0(
             ref=http_session.get('ref'),
+            state=registrant.try_value('state'),
+            city=registrant.try_value('city'),
+            street=registrant.try_value('street'),
             name_first=registrant.try_value('name_first'),
             name_last=registrant.try_value('name_last'),
             dob=registrant.try_value('dob'),
@@ -61,6 +68,8 @@ def index():
         )
 
     if request.method == "POST" and form.validate_on_submit():
+        print("form.data:")
+        print(form.data)
         step = Step_0(form.data)
         if registrant:
             registrant.update(form.data)
@@ -86,7 +95,9 @@ def index():
         sos_failure = None
         if step.reg_found:
             sos_reg = []
+            print(step.reg_found)
             for rec in step.reg_found:
+
                 rec2save = {'tree': rec['tree']}
                 if 'sample_ballots' in rec:
                     rec2save['sample_ballot'] = rec['sample_ballots']
@@ -243,6 +254,9 @@ def referring_org():
         return response
 
     registration = {
+        'state': request.values.get('state', ''),
+        'city': request.values.get('city', ''),
+        'street': request.values.get('street', ''),
         'name_last': request.values.get('name_last', ''),
         'name_first': request.values.get('name_first', ''),
         'dob': request.values.get('dob', ''),
@@ -329,3 +343,51 @@ def memory():
     buff.append("Total allocated size: %.1f KiB" % (total / 1024))
 
     return jsonify(status='ok', total=total, report=buff, pid=os.getpid())
+
+
+# testing backend api for checking voter registration status
+@main.route('/test/', methods=["POST"])
+def test():
+    
+    someJson = request.form
+    """
+    form = FormStep0(
+        ref=request.form.get('ref'),
+        state=request.form.get('state'),
+        city=request.form.get('city'),
+        street=request.form.get('street'),
+        name_first=request.form.get('name_first'),
+        name_last=request.form.get('name_last'),
+        dob=request.form.get('dob'),
+        zip=request.form.get('zip'),
+        email=request.form.get('email'),
+        phone=request.form.get('phone')
+    )
+    """
+    step = Step_0(someJson)
+    regFound = step.lookup_registration(
+        state=request.form.get('state'),
+        city=request.form.get('city'),
+        street=request.form.get('street'),
+        name_first=request.form.get('name_first'),
+        name_last=request.form.get('name_last'),
+        dob=request.form.get('dob'),
+        zipcode=request.form.get('zip')
+    )
+    print("regFound: ")
+    print(regFound)
+    sos_reg = []
+    for rec in regFound:
+        rec2save = {'tree': rec['tree']}
+        if 'sample_ballots' in rec:
+            rec2save['sample_ballot'] = rec['sample_ballots']
+        if 'districts' in rec:
+            rec2save['districts'] = rec['districts']
+        if 'elections' in rec:
+            rec2save['elections'] = rec['elections']
+        if 'polling' in rec:
+            rec2save['polling'] = rec['polling']
+        sos_reg.append(rec2save)
+    print("sos_reg: ")
+    print(sos_reg)
+    return jsonify({ 'regfound': sos_rec })

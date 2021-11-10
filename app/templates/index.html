@@ -19,6 +19,39 @@
   {{form.hidden_tag()}}
 
   {{wtf.render_field(
+    form.state,
+    _('0_state_help'),
+    {
+      'required':'required',
+      'data-parsley-error-message': _('Required'),
+      'autocomplete':'off',
+      'data-parsley-trigger':'focusout'
+    }
+    )}}
+
+  {{wtf.render_field(
+    form.city,
+    _('0_city_help'),
+    {
+      'required':'required',
+      'data-parsley-error-message': _('Required'),
+      'autocomplete':'off',
+      'data-parsley-trigger':'focusout'
+    }
+    )}}
+
+    {{wtf.render_field(
+      form.street,
+      _('0_street_help'),
+      {
+        'required':'required',
+        'data-parsley-error-message': _('Required'),
+        'autocomplete':'off',
+        'data-parsley-trigger':'focusout'
+      }
+      )}}
+
+  {{wtf.render_field(
     form.name_first,
     _('0_name_help'),
     {
