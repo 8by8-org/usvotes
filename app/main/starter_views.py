@@ -374,20 +374,26 @@ def test():
         dob=request.form.get('dob'),
         zipcode=request.form.get('zip')
     )
-    print("regFound: ")
-    print(regFound)
-    sos_reg = []
-    for rec in regFound:
-        rec2save = {'tree': rec['tree']}
-        if 'sample_ballots' in rec:
-            rec2save['sample_ballot'] = rec['sample_ballots']
-        if 'districts' in rec:
-            rec2save['districts'] = rec['districts']
-        if 'elections' in rec:
-            rec2save['elections'] = rec['elections']
-        if 'polling' in rec:
-            rec2save['polling'] = rec['polling']
-        sos_reg.append(rec2save)
-    print("sos_reg: ")
-    print(sos_reg)
-    return jsonify({ 'regfound': sos_rec })
+    #print("regFound: ")
+    #print(regFound)
+    
+    if (regFound and 'status' not in regFound) or (regFound and 'status' in regFound and regFound['status'] == 'active'):
+        return jsonify({ 'registered': True})
+        '''
+        sos_reg = []
+        for rec in regFound:
+            rec2save = {'tree': rec['tree']}
+            if 'sample_ballots' in rec:
+                rec2save['sample_ballot'] = rec['sample_ballots']
+            if 'districts' in rec:
+                rec2save['districts'] = rec['districts']
+            if 'elections' in rec:
+                rec2save['elections'] = rec['elections']
+            if 'polling' in rec:
+                rec2save['polling'] = rec['polling']
+            sos_reg.append(rec2save)
+        print("sos_reg: ")
+        print(sos_reg)
+        '''
+    else:
+        return { 'registered': False }
