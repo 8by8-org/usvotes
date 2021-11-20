@@ -50,22 +50,26 @@ class Step_0(Step):
             if os.getenv('VOTER_VIEW_URL'):
                 kmvi = myvoteinfo.MyVoteInfo(url=os.getenv('VOTER_VIEW_URL'))
             zpcd = int(zipcode)
-            if zpcd >= 71600 and zpcd <= 72999:
+            if state.upper() == 'AR':
                 kmvi = myvoteinfo.MyVoteInfo(state='ar', url='https://www.voterview.ar-nova.org/voterview')
+            elif state.upper() != 'KS':
+                kmvi = myvoteinfo.MyVoteInfo(state='rockthevote', url='https://am-i-registered-to-vote.org/verify-registration.php')
             dob = dob.split('/')
             formatted_dob = "{year}-{month}-{day}".format(year=dob[2], month=dob[0], day=dob[1])
+            #print(name_first, name_last, formatted_dob, zipcode, state.upper(), 'decline', street, city, 'person@email.com')
             request = kmvi.lookup(
                 first_name = name_first,
                 last_name = name_last,
                 dob = formatted_dob,
                 zipcode = zipcode,
-                state = state,
+                state = state.upper(),
                 gender = 'decline',
                 street = street,
                 city = city,
                 email = 'person@email.com'
             )
-            if request:
+            #print(request)
+            if request and (state.upper() == 'AR' or state.upper() == 'KS'):
                 sosrecs = request.parsed()
                 # if there are multiple, filter to only those that match the zipcode
                 if len(sosrecs) > 1:
@@ -77,6 +81,8 @@ class Step_0(Step):
                     if len(sosrecs) == 0:
                         sosrecs = request.parsed()
                 return sosrecs
+            elif request and 'status' in request[0]:
+                return request[0]
         except requests.exceptions.ConnectionError as err:
             self.voter_view_fail = kmvi.url
             current_app.logger.warn("voter view connection failure: %s" %(err))
