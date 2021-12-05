@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 from flask import current_app
 import os
 
+# used for emailing to states
 class SESMailer():
 
     def to_html(self, txt):

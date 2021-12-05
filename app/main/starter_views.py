@@ -345,8 +345,8 @@ def memory():
     return jsonify(status='ok', total=total, report=buff, pid=os.getpid())
 
 
-# testing backend api for checking voter registration status
-@main.route('/test/', methods=["POST"])
+# backend api for checking voter registration status
+@main.route('/registered/', methods=["POST"])
 def test():
     
     someJson = request.form

@@ -9,6 +9,8 @@ from app.main.forms import FormVR6
 from app.services.steps import Step_VR_6
 from datetime import datetime
 
+# this is where the form is signed
+
 @main.route('/vr/preview', methods=["GET", "POST"])
 @InSession
 def vr6_preview_sign():
