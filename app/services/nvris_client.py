@@ -5,6 +5,7 @@ import json
 import newrelic.agent
 from app.services.form_filler_service import FormFillerService
 
+# Can be used to get the federal form as an image to display
 class NVRISClient():
 
     def __init__(self, registrant):
@@ -24,7 +25,7 @@ class NVRISClient():
         current_app.logger.info("%s FormFiller request to %s" %(self.registrant.session_id, url))
         payload = self.marshall_payload('vr')
 
-        #print("payload: %s" %(payload)) # debug only -- no PII in logs
+        print("payload: %s" %(payload)) # debug only -- no PII in logs
         return self.fetch_nvris_img(url, payload)
 
     def get_ab_form(self, election):

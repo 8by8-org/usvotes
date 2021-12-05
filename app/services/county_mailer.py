@@ -6,6 +6,7 @@ import os
 import hashlib
 import base64
 
+# used to email the federal out to states
 class CountyMailer():
 
     def __init__(self, registrant, clerk, form_img_type):
