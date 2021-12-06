@@ -27,7 +27,7 @@ idna==3.2
 itsdangerous==1.1.0
 # our 1.x Flask requires we stay at Jinja < 3.0
 Jinja2==2.11.3
-myvoteinfo==0.2
+git+https://github.com/ty730/myvoteinfo
 lxml==4.6.3
 Mako==1.1.4
 MarkupSafe==2.0.1
