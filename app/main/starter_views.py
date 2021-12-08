@@ -347,23 +347,41 @@ def memory():
 
 # backend api for checking voter registration status
 @main.route('/registered/', methods=["POST"])
-def test():
-    
+def registered():
+    missingParams = []
+    otherErrors = []
+    if 'state' not in request.form:
+        missingParams.append('state')
+    elif len(request.form.get('state')) != 2:
+        otherErrors.append('state must be 2 letter abbreviation')
+    if 'city' not in request.form:
+        missingParams.append('city')
+    if 'street' not in request.form:
+        missingParams.append('street')
+    if 'name_first' not in request.form:
+        missingParams.append('name_first')
+    if 'name_last' not in request.form:
+        missingParams.append('name_last')
+    if 'dob' not in request.form:
+        missingParams.append('dob')
+    else:
+        dob = request.form.get('dob').split('/')
+        if len(dob) != 3 or len(dob[0]) not in range(1, 3) or len(dob[1]) not in range(1, 3) or len(dob[2]) != 4:
+            otherErrors.append('dob must be in the form mm/dd/yyyy')
+    if 'zip' not in request.form:
+        missingParams.append('zip')
+    if missingParams:
+        error = 'Missing or invalid parameters: '
+        error += missingParams[0]
+        for i in range(1, len(missingParams)):
+            error = error + ', ' + missingParams[i]
+        return { 'error': error }
+    if otherErrors:
+        error = otherErrors[0]
+        for i in range(1, len(otherErrors)):
+            error = error + ', ' + otherErrors[i]
+        return { 'error': error }
     someJson = request.form
-    """
-    form = FormStep0(
-        ref=request.form.get('ref'),
-        state=request.form.get('state'),
-        city=request.form.get('city'),
-        street=request.form.get('street'),
-        name_first=request.form.get('name_first'),
-        name_last=request.form.get('name_last'),
-        dob=request.form.get('dob'),
-        zip=request.form.get('zip'),
-        email=request.form.get('email'),
-        phone=request.form.get('phone')
-    )
-    """
     step = Step_0(someJson)
     regFound = step.lookup_registration(
         state=request.form.get('state'),
@@ -374,26 +392,10 @@ def test():
         dob=request.form.get('dob'),
         zipcode=request.form.get('zip')
     )
-    #print("regFound: ")
-    #print(regFound)
     
     if (regFound and 'status' not in regFound) or (regFound and 'status' in regFound and regFound['status'] == 'active'):
-        return jsonify({ 'registered': True})
-        '''
-        sos_reg = []
-        for rec in regFound:
-            rec2save = {'tree': rec['tree']}
-            if 'sample_ballots' in rec:
-                rec2save['sample_ballot'] = rec['sample_ballots']
-            if 'districts' in rec:
-                rec2save['districts'] = rec['districts']
-            if 'elections' in rec:
-                rec2save['elections'] = rec['elections']
-            if 'polling' in rec:
-                rec2save['polling'] = rec['polling']
-            sos_reg.append(rec2save)
-        print("sos_reg: ")
-        print(sos_reg)
-        '''
+        return jsonify({ 'registered': True })
+    elif regFound and 'status' in regFound:
+        return { 'registered': False, 'status': regFound['status'] }
     else:
-        return { 'registered': False }
+        return { 'registered': False, 'status': 'not found' }
