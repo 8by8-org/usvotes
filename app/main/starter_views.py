@@ -17,6 +17,9 @@ from sqlalchemy import func
 import sys
 import datetime
 import json
+from app.services import FormFillerService
+from app.main.VR.example_form import signature_img_string
+from app.services.usps_api import USPS_API
 
 import tracemalloc
 tracemalloc.start(10)
@@ -345,7 +348,7 @@ def memory():
     return jsonify(status='ok', total=total, report=buff, pid=os.getpid())
 
 
-# backend api for checking voter registration status
+# backend api endpoint for checking voter registration status
 @main.route('/registered/', methods=["POST"])
 def registered():
     missingParams = []
@@ -370,12 +373,24 @@ def registered():
             otherErrors.append('dob must be in the form mm/dd/yyyy')
     if 'zip' not in request.form:
         missingParams.append('zip')
+    elif len(request.form.get('zip')) != 5:
+        otherErrors.append('zip must be 5 digits')
     if missingParams:
         error = 'Missing or invalid parameters: '
         error += missingParams[0]
         for i in range(1, len(missingParams)):
             error = error + ', ' + missingParams[i]
         return { 'error': error }
+    form = FormVR3(
+        addr = request.form.get('street'),
+        city = request.form.get('city'),
+        state = request.form.get('state'),
+        zip = request.form.get('zip'),
+    )
+    usps_api = USPS_API(form.data)
+    validated_addresses = usps_api.validate_addresses()
+    if not validated_addresses:
+        otherErrors.append('(street, city, state, zip) do not form a valid address')
     if otherErrors:
         error = otherErrors[0]
         for i in range(1, len(otherErrors)):
@@ -399,3 +414,80 @@ def registered():
         return { 'registered': False, 'status': regFound['status'] }
     else:
         return { 'registered': False, 'status': 'not found' }
+
+# backend api endpoint for filling out the Federal Form to register to vote
+# Usage: http://localhost:5000/registertovote?name_first=foo&name_last=bar
+@main.route('/registertovote', methods=['GET'])
+def reg():
+    #if 'state' not in request.form or 'city' not in request.form or 'street' not in request.form or 'name_first' not in request.form:
+        #return { 'error': 'Missing or invalid parameters' }
+    name_first = request.args.get('name_first')
+    name_last = request.args.get('name_last')
+    if not name_first:
+        name_first = "foo"
+    if not name_last:
+        name_last = "bar"
+    payload_file = 'app/services/tests/test-vr-en-payload.json'
+    with open(payload_file) as payload_f:
+        payload = json.load(payload_f)
+        payload['01_firstName'] = name_first
+        payload['01_lastName'] = name_last
+        ffs = FormFillerService(payload=payload, form_name='/vr/en')
+        img = ffs.as_image()
+        form = FormVR6(signature_string = signature_img_string)
+        reg = Registrant(
+            registration_value={
+                "name_first": name_first,
+                "name_last": name_last,
+                "dob":"01/01/2000",
+                "email":"foo@example.com",
+                "addr": "707 Vermont St",
+                "unit": "Room A",
+                "city": "Lawrence",
+                "state": "KANSAS",
+                "zip": "66044",
+                "identification": "nnnnn",
+                "signature_string": signature_img_string, # dummy
+                "vr_form": signature_img_string, # dummy
+            },
+            county="TEST",
+            reg_lookup_complete=True,
+            addr_lookup_complete=True,
+            is_citizen=True,
+            party="unaffiliated",
+        )
+        g.locale = guess_locale()
+        ninety_days = datetime.timedelta(days=90)
+        today = datetime.date.today()
+    return render_template('vr/preview-sign.html', preview_img=img, registrant=reg, form=form)
+
+# backend api endpoint for filling out the Federal Form to register to vote
+@main.route('/email', methods=['GET'])
+def email():
+    reg = Registrant(
+        registration_value={
+            "name_first": "foo",
+            "name_last": "bar",
+            "dob":"01/01/2000",
+            "email":"foo@example.com",
+            "addr": "707 Vermont St",
+            "unit": "Room A",
+            "city": "Lawrence",
+            "state": "KANSAS",
+            "zip": "66044",
+            "identification": "nnnnn",
+            "signature_string": signature_img_string, # dummy
+            "vr_form": signature_img_string, # dummy
+        },
+        county="TEST",
+        reg_lookup_complete=True,
+        addr_lookup_complete=True,
+        is_citizen=True,
+        party="unaffiliated",
+    )
+    #reg.update({'vr_form':signed_vr_form})
+    #reg.signed_at = datetime.utcnow()
+    clerk = reg.try_clerk()
+    mailer = CountyMailer(reg, clerk, 'vr_form')
+    #r = mailer.send()
+    return { 'error': 'Missing or invalid parameters' }
