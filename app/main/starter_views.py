@@ -1,4 +1,5 @@
 from __future__ import print_function
+from email import message
 from app.main import main
 from flask import Response, g, url_for, render_template, request, redirect, session as http_session, abort, current_app, flash, jsonify
 from flask_babel import lazy_gettext
@@ -575,6 +576,7 @@ def reg():
         #r = mailer.send()
         '''Shows basic usage of the Gmail API.'''
         service = get_service()
+        '''
         emailMsg = 'This is a test of the Gmail API'
         mimeMessage = MIMEMultipart()
         mimeMessage['to'] = 'tylerwong2000@gmail.com'
@@ -583,6 +585,14 @@ def reg():
         raw_string = base64.urlsafe_b64encode(mimeMessage.as_bytes()).decode()
         message = service.users().messages().send(userId='me', body={'raw': raw_string}).execute()
         print(message)
+        '''
+        sender = 'tylerwong2000@gmail.com'
+        to = 'tylerwong2000@gmail.com'
+        subject = 'Test sending with attachment'
+        message_text = 'This is a test to send and email with the Gmail API with an attachment.'
+        file = 'attachment.txt'
+        messageWithAttachment = create_message_with_attachment(sender, to, subject, message_text, file)
+        send_message(service, 'me', messageWithAttachment)
     return render_template('vr/preview-sign.html', preview_img=img, registrant=reg, form=form)
 
 # backend api endpoint using the email services of KSVotes
