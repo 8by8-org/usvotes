@@ -1,10 +1,67 @@
-# KSVotes.org
+# USVotes
 
-[![Build Status](https://travis-ci.com/BlueprintKansas/ksvotes.org.svg?branch=master)](https://travis-ci.com/BlueprintKansas/ksvotes.org)
+## API Documentation
+#### Current Base URL: https://usvotes-3ulcxuufea-uw.a.run.app
+### POST /registered
+#### Fields:
+* state
+* city
+* street
+* name_first
+* name_last
+* dob
+* zip
+#### Success responses:
+```
+{
+    "registered": true
+}
+```
+```
+{
+    "registered": false
+    "status": "not found"
+}
+```
+```
+{
+    "registered": false
+    "status": "dropped"
+}
+```
+#### Error responses:
+```
+{
+    "error": "Missing or invalid parameters: <field 1>, <field 2>, ..."
+}
+```
+```
+{
+    "error": "(street, city, state, zip) do not form a valid address"
+}
+```
+```
+{
+    "error": "state must be 2 letter abbreviation"
+}
+```
+```
+{
+    "error": "zip must be 5 digits"
+}
+```
+```
+{
+    "error": "zip must be 5 digits"
+}
+```
+```
+{
+    "error": "dob must be in the form mm/dd/yyyy"
+}
+```
 
-The ksvotes.org site makes Kansas online voting registration easy.
-
-## Table of Contents
+## Repository and Environment Setup
 * [Database Setup](#database-setup)
 * [Setup & Installation](#setup-&-installation)
     * [Environmental Variables](#environmental-variables)
