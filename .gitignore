@@ -14,3 +14,5 @@ testserver.log
 app/translations
 messages.pot
 *.swp
+token.pickle
+credentials.json

@@ -1,5 +1,7 @@
+from __future__ import print_function
+from email import message
 from app.main import main
-from flask import g, url_for, render_template, request, redirect, session as http_session, abort, current_app, flash, jsonify
+from flask import Response, g, url_for, render_template, request, redirect, session as http_session, abort, current_app, flash, jsonify
 from flask_babel import lazy_gettext
 from app.main.forms import *
 from app.models import *
@@ -20,7 +22,113 @@ import json
 from app.services import FormFillerService
 from app.main.VR.example_form import signature_img_string
 from app.services.usps_api import USPS_API
+from app.services.county_mailer import CountyMailer
+''' For Sending Emails using the Gmail API '''
+import base64
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.audio import MIMEAudio
+from email.mime.base import MIMEBase
+import mimetypes
+import pickle
+import os
+from apiclient import errors
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 
+# If modifying these scopes, delete the file token.pickle.
+SCOPES = ['https://mail.google.com/']
+
+''' For Sending Emails using the Gmail API '''
+def get_service():
+    creds = None
+    # The file token.pickle stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=5500)
+        # Save the credentials for the next run
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+
+    service = build('gmail', 'v1', credentials=creds)
+
+    return service
+
+''' For Sending Emails using the Gmail API '''
+def send_message(service, user_id, message):
+    try:
+        message = service.users().messages().send(userId=user_id,
+                body=message).execute()
+
+        print('Message Id: {}'.format(message['id']))
+
+        return message
+    except Exception as e:
+        print('An error occurred: {}'.format(e))
+        return None
+
+''' For Sending Emails using the Gmail API '''
+def create_message_with_attachment(
+    sender,
+    to,
+    subject,
+    message_text,
+    file,
+    ):
+    message = MIMEMultipart()
+    message['to'] = to
+    message['from'] = sender
+    message['subject'] = subject
+
+    msg = MIMEText(message_text)
+    message.attach(msg)
+
+    (content_type, encoding) = mimetypes.guess_type(file)
+
+    if content_type is None or encoding is not None:
+        content_type = 'application/octet-stream'
+
+    (main_type, sub_type) = content_type.split('/', 1)
+
+    if main_type == 'text':
+        with open(file, 'rb') as f:
+            msg = MIMEText(f.read().decode('utf-8'), _subtype=sub_type)
+
+    elif main_type == 'image':
+        with open(file, 'rb') as f:
+            msg = MIMEImage(f.read(), _subtype=sub_type)
+        
+    elif main_type == 'audio':
+        with open(file, 'rb') as f:
+            msg = MIMEAudio(f.read(), _subtype=sub_type)
+        
+    else:
+        with open(file, 'rb') as f:
+            msg = MIMEBase(main_type, sub_type)
+            msg.set_payload(f.read())
+
+    filename = os.path.basename(file)
+    msg.add_header('Content-Disposition', 'attachment',
+                   filename=filename)
+    message.attach(msg)
+
+    raw_message = \
+        base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
+    return {'raw': raw_message.decode('utf-8')}
+
+''' Start of old endpoints from KSVotes '''
 import tracemalloc
 tracemalloc.start(10)
 
@@ -380,7 +488,7 @@ def registered():
         error += missingParams[0]
         for i in range(1, len(missingParams)):
             error = error + ', ' + missingParams[i]
-        return { 'error': error }
+        return Response({ 'error': error }, status=400)
     form = FormVR3(
         addr = request.form.get('street'),
         city = request.form.get('city'),
@@ -395,7 +503,7 @@ def registered():
         error = otherErrors[0]
         for i in range(1, len(otherErrors)):
             error = error + ', ' + otherErrors[i]
-        return { 'error': error }
+        return Response({ 'error': error }, status=400)
     someJson = request.form
     step = Step_0(someJson)
     regFound = step.lookup_registration(
@@ -459,9 +567,35 @@ def reg():
         g.locale = guess_locale()
         ninety_days = datetime.timedelta(days=90)
         today = datetime.date.today()
+
+        #reg.update({'vr_form':signed_vr_form})
+        #reg.signed_at = datetime.utcnow()
+        #clerk = reg.try_clerk()
+        #print(clerk)
+        #mailer = CountyMailer(reg, clerk, 'vr_form')
+        #r = mailer.send()
+        '''Shows basic usage of the Gmail API.'''
+        service = get_service()
+        '''
+        emailMsg = 'This is a test of the Gmail API'
+        mimeMessage = MIMEMultipart()
+        mimeMessage['to'] = 'tylerwong2000@gmail.com'
+        mimeMessage['subject'] = 'Test Gmail API'
+        mimeMessage.attach(MIMEText(emailMsg, 'plain'))
+        raw_string = base64.urlsafe_b64encode(mimeMessage.as_bytes()).decode()
+        message = service.users().messages().send(userId='me', body={'raw': raw_string}).execute()
+        print(message)
+        '''
+        sender = 'tylerwong2000@gmail.com'
+        to = 'tylerwong2000@gmail.com'
+        subject = 'Test sending with attachment'
+        message_text = 'This is a test to send and email with the Gmail API with an attachment.'
+        file = 'attachment.txt'
+        messageWithAttachment = create_message_with_attachment(sender, to, subject, message_text, file)
+        send_message(service, 'me', messageWithAttachment)
     return render_template('vr/preview-sign.html', preview_img=img, registrant=reg, form=form)
 
-# backend api endpoint for filling out the Federal Form to register to vote
+# backend api endpoint using the email services of KSVotes
 @main.route('/email', methods=['GET'])
 def email():
     reg = Registrant(
