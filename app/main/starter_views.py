@@ -38,6 +38,8 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
+from email.mime.application import MIMEApplication
+
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://mail.google.com/']
 
@@ -89,40 +91,139 @@ def create_message_with_attachment(
     ):
     message = MIMEMultipart()
     message['to'] = to
-    message['from'] = sender
+    #message['from'] = sender
     message['subject'] = subject
 
-    msg = MIMEText(message_text)
-    message.attach(msg)
+    # msg = MIMEText(message_text)
+    # message.attach(msg)
 
-    (content_type, encoding) = mimetypes.guess_type(file)
+    # Encapsulate the plain and HTML versions of the message body in an
+    # 'alternative' part, so message agents can decide which they want to display.
+    msgAlternative = MIMEMultipart('alternative')
+    message.attach(msgAlternative)
 
-    if content_type is None or encoding is not None:
-        content_type = 'application/octet-stream'
+    msgText = MIMEText('This is the alternative plain text message.')
+    msgAlternative.attach(msgText)
 
-    (main_type, sub_type) = content_type.split('/', 1)
+    # We reference the img in the IMG SRC attribute by the ID we give it below
+    html = '''<html>
+    <head><style>
+        body {
+            margin:0;
+        }
+        h1 {
+            font-size:2.0em;
+            font-weight:bold;
+        }
+        h2 {
+            font-size:1.7em;
+            font-weight:bold;
+        }
+        p {
+            font-size:1.5em;
+            margin-left:10%;
+            margin-right:10%;
+        }
+        footer > p {
+            font-size:1.1em;
+        }
+        img {
+            max-width:420px;
+            max-height:296px;
+        }
+        button {
+            background-color:black;
+            color:white;
+            border:black;
+            font-size:1.7em;
+            padding:0.5em;
+            padding-left:1.6em;
+            padding-right:1.6em;
+            font-weight:bold;
+            border-top-right-radius:25%100%;
+            border-top-left-radius:25%100%;
+            border-bottom-left-radius:25%100%;
+            border-bottom-right-radius:25%100%;
+        }
+        a {
+            color:black;
+            font-weight: bold;
+        }
+        .content {
+            text-align:center;
+        }
+        .settingscontainer {
+            display:flex;
+            width:fit-content;
+            margin:2em;
+            margin-left:auto;
+            margin-right:auto;
+            font-size:1.1em;
+        }
+        .vr {
+            margin:0.5em;
+        }
+        .divider {
+            margin-top:3em;
+            margin-bottom:3em;
+        }
+        footer {
+            background-color:black;
+            color:white;
+            text-align:center;
+            padding:1.2em;
+        }
+    </style></head>
+    <body>
+    <div class="content">
+    <img src="cid:image1">
+    <h1>JUST MAIL IT IN!</h1>
+    <p>
+        A PDF of your voter registration form is attached.
+        Print the form and mail it to your state to finish the voter registration process.
+        Instructions are included in the PDF.
+    </p>
+    <hr class="divider" width="25%">
+    <h2>THERE'S MORE YOU CAN DO</h2>
+    <p>
+        Come back to 8by8 and take another action for the AAPI community!
+    </p>
+    <button>LEARN MORE</button>
+    <div class="settingscontainer">
+        <a href="">Unsubscribe</a>
+        <hr class="vr">
+        <a href="">Email settings</a>
+    </div>
+    </div>
+    </body>
+    <footer>
+        <p>
+            Copyright &copy; 2021
+        </p>
+        <p>
+            8BY8 is a nonprofit organization dedicated to stopping hate against Asian American Pacific Islander communities through voter registration and turnout.
+        </p>
+    </footer>
+    </html>'''
+    msgText = MIMEText(html, 'html')
+    msgAlternative.attach(msgText)
 
-    if main_type == 'text':
-        with open(file, 'rb') as f:
-            msg = MIMEText(f.read().decode('utf-8'), _subtype=sub_type)
+    # This assumes the image is in the root directory
+    fp = open('8by8challenge.png', 'rb')
+    msgImage = MIMEImage(fp.read())
+    fp.close()
 
-    elif main_type == 'image':
-        with open(file, 'rb') as f:
-            msg = MIMEImage(f.read(), _subtype=sub_type)
-        
-    elif main_type == 'audio':
-        with open(file, 'rb') as f:
-            msg = MIMEAudio(f.read(), _subtype=sub_type)
-        
-    else:
-        with open(file, 'rb') as f:
-            msg = MIMEBase(main_type, sub_type)
-            msg.set_payload(f.read())
+    # Define the image's ID as referenced above
+    msgImage.add_header('Content-ID', '<image1>')
+    message.attach(msgImage)
+    
+    img_bin = base64.b64decode(file.replace('data:image/png;base64,', '').replace('"', '').replace("'", ''))
 
-    filename = os.path.basename(file)
-    msg.add_header('Content-Disposition', 'attachment',
-                   filename=filename)
-    message.attach(msg)
+    file_name = 'voterregestrationform.png'
+    mime_part = MIMEApplication(img_bin)
+    mime_part.add_header('Content-Disposition', 'attachment', filename=file_name)
+    mime_part.add_header('Content-Type', 'image/png; name="{}"'.format(file_name))
+    message.attach(mime_part)
 
     raw_message = \
         base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
@@ -525,12 +626,12 @@ def registered():
 
 # backend api endpoint for filling out the Federal Form to register to vote
 # Usage: http://localhost:5000/registertovote?name_first=foo&name_last=bar
-@main.route('/registertovote', methods=['GET'])
+@main.route('/registertovote/', methods=['POST'])
 def reg():
     #if 'state' not in request.form or 'city' not in request.form or 'street' not in request.form or 'name_first' not in request.form:
         #return { 'error': 'Missing or invalid parameters' }
-    name_first = request.args.get('name_first')
-    name_last = request.args.get('name_last')
+    name_first = request.form.get('name_first')
+    name_last = request.form.get('name_last')
     if not name_first:
         name_first = "foo"
     if not name_last:
@@ -590,38 +691,6 @@ def reg():
         to = 'tylerwong2000@gmail.com'
         subject = 'Test sending with attachment'
         message_text = 'This is a test to send and email with the Gmail API with an attachment.'
-        file = 'attachment.txt'
-        messageWithAttachment = create_message_with_attachment(sender, to, subject, message_text, file)
+        messageWithAttachment = create_message_with_attachment(sender, to, subject, message_text, img)
         send_message(service, 'me', messageWithAttachment)
-    return render_template('vr/preview-sign.html', preview_img=img, registrant=reg, form=form)
-
-# backend api endpoint using the email services of KSVotes
-@main.route('/email', methods=['GET'])
-def email():
-    reg = Registrant(
-        registration_value={
-            "name_first": "foo",
-            "name_last": "bar",
-            "dob":"01/01/2000",
-            "email":"foo@example.com",
-            "addr": "707 Vermont St",
-            "unit": "Room A",
-            "city": "Lawrence",
-            "state": "KANSAS",
-            "zip": "66044",
-            "identification": "nnnnn",
-            "signature_string": signature_img_string, # dummy
-            "vr_form": signature_img_string, # dummy
-        },
-        county="TEST",
-        reg_lookup_complete=True,
-        addr_lookup_complete=True,
-        is_citizen=True,
-        party="unaffiliated",
-    )
-    #reg.update({'vr_form':signed_vr_form})
-    #reg.signed_at = datetime.utcnow()
-    clerk = reg.try_clerk()
-    mailer = CountyMailer(reg, clerk, 'vr_form')
-    #r = mailer.send()
-    return { 'error': 'Missing or invalid parameters' }
+    return { 'status': 'email sent' }
