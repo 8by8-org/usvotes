@@ -1,5 +1,8 @@
 from __future__ import print_function
 from email import message
+from sre_parse import State
+
+from parse_type import Cardinality
 from app.main import main
 from flask import Response, g, url_for, render_template, request, redirect, session as http_session, abort, current_app, flash, jsonify
 from flask_babel import lazy_gettext
@@ -22,15 +25,11 @@ import json
 from app.services import FormFillerService
 from app.main.VR.example_form import signature_img_string
 from app.services.usps_api import USPS_API
-from app.services.county_mailer import CountyMailer
 ''' For Sending Emails using the Gmail API '''
 import base64
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
-from email.mime.audio import MIMEAudio
-from email.mime.base import MIMEBase
-import mimetypes
 import pickle
 import os
 from apiclient import errors
@@ -57,8 +56,18 @@ def get_service():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+            flow = InstalledAppFlow.from_client_config(
+                {"web":
+                    {
+                        "client_id":os.getenv('CLIENT_ID'),
+                        "project_id":os.getenv('PROJECT_ID'),
+                        "auth_uri":"https://accounts.google.com/o/oauth2/auth",
+                        "token_uri":"https://oauth2.googleapis.com/token",
+                        "auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs",
+                        "client_secret":os.getenv('CLIENT_SECRET')
+                    }
+                },
+                SCOPES)
             creds = flow.run_local_server(port=5500)
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as token:
@@ -82,13 +91,7 @@ def send_message(service, user_id, message):
         return None
 
 ''' For Sending Emails using the Gmail API '''
-def create_message_with_attachment(
-    sender,
-    to,
-    subject,
-    message_text,
-    file,
-    ):
+def create_message_with_attachment(to, subject, file):
     message = MIMEMultipart()
     message['to'] = to
     #message['from'] = sender
@@ -628,54 +631,101 @@ def registered():
 # Usage: http://localhost:5000/registertovote?name_first=foo&name_last=bar
 @main.route('/registertovote/', methods=['POST'])
 def reg():
-    #if 'state' not in request.form or 'city' not in request.form or 'street' not in request.form or 'name_first' not in request.form:
-        #return { 'error': 'Missing or invalid parameters' }
+    missingParams = []
+    otherErrors = []
+    if 'name_first' not in request.form:
+        missingParams.append('state')
+    if 'name_last' not in request.form:
+        missingParams.append('state')
+    if 'state' not in request.form:
+        missingParams.append('state')
+    elif len(request.form.get('state')) != 2:
+        otherErrors.append('state must be 2 letter abbreviation')
+    if 'city' not in request.form:
+        missingParams.append('city')
+    if 'street' not in request.form:
+        missingParams.append('street')
+    if 'dob' not in request.form:
+        missingParams.append('dob')
+    else:
+        dobArr = request.form.get('dob').split('/')
+        if len(dobArr) != 3 or len(dobArr[0]) not in range(1, 3) or len(dobArr[1]) not in range(1, 3) or len(dobArr[2]) != 4:
+            otherErrors.append('dob must be in the form mm/dd/yyyy')
+    if 'zip' not in request.form:
+        missingParams.append('zip')
+    elif len(request.form.get('zip')) != 5:
+        otherErrors.append('zip must be 5 digits')
+    if 'email' not in request.form:
+        missingParams.append('email')
+    else:
+        emailArr = request.form.get('email').split('@')
+        if len(emailArr) != 2 or len(emailArr[1].split('.')) != 2:
+            otherErrors.append('invalid email')
+    if 'citizen' not in request.form:
+        missingParams.append('citizen')
+    elif request.form.get('citizen') != 'yes':
+        otherErrors.append('citizen parameter must be yes')
+    if 'eighteenPlus' not in request.form:
+        missingParams.append('eighteenPlus')
+    elif request.form.get('eighteenPlus') != 'yes':
+        otherErrors.append('eighteenPlus parameter must be yes')
+    if 'party' not in request.form:
+        missingParams.append('party')
+    if 'idNumber' not in request.form:
+        missingParams.append('idNumber')
+    elif not request.form.get('idNumber').isdigit():
+        otherErrors.append('invalid ID number')
+    if missingParams:
+        error = 'Missing or invalid parameters: '
+        error += missingParams[0]
+        for i in range(1, len(missingParams)):
+            error = error + ', ' + missingParams[i]
+        return Response({ 'error': error }, status=400)
+    form = FormVR3(
+        addr = request.form.get('street'),
+        city = request.form.get('city'),
+        state = request.form.get('state'),
+        zip = request.form.get('zip'),
+    )
+    usps_api = USPS_API(form.data)
+    validated_addresses = usps_api.validate_addresses()
+    if not validated_addresses:
+        otherErrors.append('(street, city, state, zip) do not form a valid address')
+    if otherErrors:
+        error = otherErrors[0]
+        for i in range(1, len(otherErrors)):
+            error = error + ', ' + otherErrors[i]
+        return Response({ 'error': error }, status=400)
+
     name_first = request.form.get('name_first')
     name_last = request.form.get('name_last')
-    if not name_first:
-        name_first = "foo"
-    if not name_last:
-        name_last = "bar"
+    state = request.form.get('state')
+    city = request.form.get('city')
+    street = request.form.get('street')
+    dob = request.form.get('dob')
+    zip = request.form.get('zip')
+    email = request.form.get('email')
+    # citizen = request.form.get('citizen')
+    # eighteenPlus = request.form.get('eighteenPlus')
+    party = request.form.get('party')
+    idNumber = request.form.get('idNumber')
     payload_file = 'app/services/tests/test-vr-en-payload.json'
     with open(payload_file) as payload_f:
         payload = json.load(payload_f)
         payload['01_firstName'] = name_first
         payload['01_lastName'] = name_last
+        payload['02_homeAddress'] = street
+        payload['02_aptLot'] = ""
+        payload['02_cityTown'] = city
+        payload['02_state'] = state
+        payload['02_zipCode'] = zip
+        payload['04_dob'] = dob
+        payload['07_party'] = party
+        payload['06_idNumber'] = idNumber
+        payload['00_citizen_yes'] = True
+        payload['00_eighteenPlus_yes'] = True
         ffs = FormFillerService(payload=payload, form_name='/vr/en')
         img = ffs.as_image()
-        form = FormVR6(signature_string = signature_img_string)
-        reg = Registrant(
-            registration_value={
-                "name_first": name_first,
-                "name_last": name_last,
-                "dob":"01/01/2000",
-                "email":"foo@example.com",
-                "addr": "707 Vermont St",
-                "unit": "Room A",
-                "city": "Lawrence",
-                "state": "KANSAS",
-                "zip": "66044",
-                "identification": "nnnnn",
-                "signature_string": signature_img_string, # dummy
-                "vr_form": signature_img_string, # dummy
-            },
-            county="TEST",
-            reg_lookup_complete=True,
-            addr_lookup_complete=True,
-            is_citizen=True,
-            party="unaffiliated",
-        )
-        g.locale = guess_locale()
-        ninety_days = datetime.timedelta(days=90)
-        today = datetime.date.today()
-
-        #reg.update({'vr_form':signed_vr_form})
-        #reg.signed_at = datetime.utcnow()
-        #clerk = reg.try_clerk()
-        #print(clerk)
-        #mailer = CountyMailer(reg, clerk, 'vr_form')
-        #r = mailer.send()
-        '''Shows basic usage of the Gmail API.'''
         service = get_service()
         '''
         emailMsg = 'This is a test of the Gmail API'
@@ -687,10 +737,8 @@ def reg():
         message = service.users().messages().send(userId='me', body={'raw': raw_string}).execute()
         print(message)
         '''
-        sender = 'tylerwong2000@gmail.com'
-        to = 'tylerwong2000@gmail.com'
-        subject = 'Test sending with attachment'
-        message_text = 'This is a test to send and email with the Gmail API with an attachment.'
-        messageWithAttachment = create_message_with_attachment(sender, to, subject, message_text, img)
+        to = email
+        subject = 'Register to vote with 8by8'
+        messageWithAttachment = create_message_with_attachment(to, subject, img)
         send_message(service, 'me', messageWithAttachment)
     return { 'status': 'email sent' }
