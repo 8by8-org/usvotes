@@ -57,3 +57,11 @@ WTForms==2.3.1
 # tests
 behave==1.2.6
 selenium==3.141.0
+# For Gmail API
+google-api-core==2.3.2
+google-api-python-client==2.33.0
+google-auth==2.3.3
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==0.4.6
+googleapis-common-protos==1.54.0
+Wand==0.6.7
