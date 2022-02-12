@@ -3,6 +3,7 @@
 ## API Documentation
 #### Current Base URL: https://usvotes-3ulcxuufea-uw.a.run.app
 ### POST /registered/
+This endpoint is used to check the voter registration status of a given person. It outputs whether or not the person is registered to vote.
 #### Fields:
 * state
 * city
@@ -56,6 +57,7 @@
 }
 ```
 ### POST /registertovote/
+This endpoint is used to fill out the [Federal Voter Registration Form](https://www.eac.gov/sites/default/files/eac_assets/1/6/Federal_Voter_Registration_ENG.pdf) and send an email with it attached to the person filling it out.
 #### Fields:
 * state
 * city
@@ -190,6 +192,13 @@ DEMO_UUID={{generate a UUID and run "make load-demo"}}
 
 # You can grab one from the URL below or take the one from the staging configuration
 USPS_USER_ID={{key from https://registration.shippingapis.com/}}
+
+NVRIS_URL=TESTING
+
+# For using the Gmail API to send Emails
+CLIENT_ID={{get creds https://developers.google.com/workspace/guides/create-credentials}}
+CLIENT_SECRET={{get creds https://developers.google.com/workspace/guides/create-credentials}}
+PROJECT_ID={{your project}}
 
 #########################
 # OPTIONAL ENV VARS
