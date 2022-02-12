@@ -57,6 +57,126 @@ class EmailService():
         except Exception as e:
             print('An error occurred: {}'.format(e))
             return None
+    
+    def create_template_message(self, to, subject, h1, p1='', img1='', btn1='', h2='', img2='', p2='', btn2=''):
+        message = MIMEMultipart()
+        message['to'] = to
+        message['subject'] = subject
+
+        # Encapsulate the plain and HTML versions of the message body in an
+        # 'alternative' part, so message agents can decide which they want to display.
+        msgAlternative = MIMEMultipart('alternative')
+        message.attach(msgAlternative)
+
+        html = '''<html>
+        <head><style>
+            body {
+                margin:0;
+            }
+            h1 {
+                font-size:2.0em;
+                font-weight:bold;
+            }
+            h2 {
+                font-size:1.7em;
+                font-weight:bold;
+            }
+            p {
+                font-size:1.5em;
+                margin-left:10%;
+                margin-right:10%;
+            }
+            footer > p {
+                font-size:1.1em;
+            }
+            img {
+                max-width:420px;
+                max-height:296px;
+            }
+            button {
+                background-color:black;
+                color:white;
+                border:black;
+                font-size:1.7em;
+                padding:0.5em;
+                padding-left:1.6em;
+                padding-right:1.6em;
+                font-weight:bold;
+                border-top-right-radius:25%100%;
+                border-top-left-radius:25%100%;
+                border-bottom-left-radius:25%100%;
+                border-bottom-right-radius:25%100%;
+            }
+            a {
+                color:black;
+                font-weight: bold;
+            }
+            .content {
+                text-align:center;
+            }
+            .settingscontainer {
+                display:flex;
+                width:fit-content;
+                margin:2em;
+                margin-left:auto;
+                margin-right:auto;
+                font-size:1.1em;
+            }
+            .vr {
+                margin:0.5em;
+            }
+            .divider {
+                margin-top:3em;
+                margin-bottom:3em;
+            }
+            footer {
+                background-color:black;
+                color:white;
+                text-align:center;
+                padding:1.2em;
+            }
+        </style></head>
+        <body>
+        <div class="content">
+        <img src="cid:image1">
+        <h1>{}</h1>
+        <p>{}</p>
+        <hr class="divider" width="25%">
+        <h2>{}</h2>
+        <p>{}</p>
+        <button>{}}</button>
+        <div class="settingscontainer">
+            <a href="">Unsubscribe</a>
+            <hr class="vr">
+            <a href="">Email settings</a>
+        </div>
+        </div>
+        </body>
+        <footer>
+            <p>
+                Copyright &copy; 2021
+            </p>
+            <p>
+                8BY8 is a nonprofit organization dedicated to stopping hate against Asian American Pacific Islander communities through voter registration and turnout.
+            </p>
+        </footer>
+        </html>'''.format(h1, p1, h2, p2, btn2)
+        msgText = MIMEText(html, 'html')
+        msgAlternative.attach(msgText)
+
+        # This assumes the image is in the root directory
+        fp = open('8by8challenge.png', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+
+        # Define the image's ID as referenced above
+        msgImage.add_header('Content-ID', '<image1>')
+        message.attach(msgImage)
+
+        raw_message = \
+            base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
+        return {'raw': raw_message.decode('utf-8')}
+
             
     def create_message_with_attachment(self, to, subject, file):
         message = MIMEMultipart()
