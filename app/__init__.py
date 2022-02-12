@@ -7,6 +7,7 @@ from flask_babel import Babel
 from config import config, LANGUAGES
 import logging
 from flask.logging import default_handler
+from flask_cors import CORS
 
 db = SQLAlchemy()
 babel = Babel()
@@ -20,6 +21,7 @@ def create_app(script_info):
         config_name = os.getenv('APP_CONFIG')
     os.environ['FLASK_ENV'] = config_name
     app = Flask(__name__)
+    CORS(app)
     app.config.from_object(config[config_name])
 
     if not app.testing and not app.debug and not app.config['SSL_DISABLE']:
