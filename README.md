@@ -124,6 +124,29 @@ If a success response is returned then an email is sent to the given email with 
     "error": "dob must be in the form mm/dd/yyyy"
 }
 ```
+### POST /email/
+This endpoint is used to send an endpoint out based on a template type. Valid template types are:
+challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder
+#### Fields:
+* email
+* type
+#### Success responses:
+```
+{
+    "status": "email sent"
+}
+```
+#### Error responses:
+```
+{
+    "error": "invalid email"
+}
+```
+```
+{
+    "error": "invalid template type"
+}
+```
 ## Repository and Environment Setup
 * [Database Setup](#database-setup)
 * [Setup & Installation](#setup-&-installation)
