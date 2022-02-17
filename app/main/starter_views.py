@@ -564,6 +564,8 @@ def email():
         requestData = request.form
     emailServ = EmailService()
     emailTo = requestData.get('email')
+    type = requestData.get('type')
+    '''
     subject = requestData.get('subject')
     h1 = requestData.get('h1')
     p1 = requestData.get('p1')
@@ -572,7 +574,9 @@ def email():
     h2 = requestData.get('h2')
     img2 = requestData.get('img2')
     p2 = requestData.get('p2')
+    p3 = requestData.get('p3')
     btn2 = requestData.get('btn2')
-    message = emailServ.create_template_message(emailTo, subject, h1)
-    # emailServ.send_message(message)
+    '''
+    message = emailServ.create_template_message(emailTo, type)
+    emailServ.send_message(message)
     return { 'status': 'email sent' }
