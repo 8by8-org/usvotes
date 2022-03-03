@@ -1,16 +1,23 @@
 <html>
-    <head><style>
+    <head>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato&display=swap');
         body {
             margin: 0;
             text-align: center;
+            font-family: 'Lato', sans-serif;
         }
         h1 {
-            font-size:2.0em;
-            font-weight:bold;
+            font-size:36pt;
+            font-family: 'Bebas Neue';
+            letter-spacing: 0.03em;
+            font-weight: 200;
         }
         h2 {
-            font-size:1.7em;
-            font-weight:bold;
+            font-size:24pt;
+            font-family: 'Bebas Neue';
+            letter-spacing: 0.03em;
+            font-weight: 200;
         }
         p {
             font-size:1.5em;
@@ -20,26 +27,40 @@
         footer > p {
             font-size:1.1em;
         }
-        img {
+        .img1 {
+            max-width:315px;
+            max-height:222px;
+        }
+        .img2 {
+            max-width:280px;
+            max-height:198px;
+        }
+        .img8by8 {
             max-width:420px;
             max-height:296px;
         }
         button {
+            font-family: 'Bebas Neue';
+            letter-spacing: 0.03em;
             border: solid black 0.25rem;
             font-size:1.5em;
-            padding:0.5em;
+            padding:0.3em;
             padding-left:1.4em;
             padding-right:1.4em;
             font-weight:bold;
-            border-top-right-radius:3em 100%;
-            border-top-left-radius:3em 100%;
-            border-bottom-left-radius:3em 100%;
-            border-bottom-right-radius:3em 100%;
+            border-top-right-radius:2em 100%;
+            border-top-left-radius:2em 100%;
+            border-bottom-left-radius:2em 100%;
+            border-bottom-right-radius:2em 100%;
         }
         .btn2 {
+            font-size:24pt;
+            font-weight: 200;
             background-color: black;
         }
         .btn1 {
+            font-size:24pt;
+            font-weight: 200;
             margin-top: 0.8em;
             background: linear-gradient(90deg, #02DDC3, #FFED10);
             color: black;
@@ -82,7 +103,7 @@
         }
     </style></head>
     <body>
-    <img src="img/8by8challenge.png">
+    <img class="img8by8" src="img/8by8challenge.png">
     <h1>JUST MAIL IT IN!</h1>
     <p>
         A PDF of your voter registration form is attached.
@@ -90,12 +111,12 @@
         Instructions are included in the PDF.
     </p>
     <div>
-        <img class="" src="img/yang.png">
+        <img class="img1 " src="img/yang.png">
     </div>
     <button class="btn1">CHECK OUT YOUR BADGES</button>
     <hr class="divider" width="25%">
     <h2>THERE'S MORE YOU CAN DO</h2>
-    <img src="img/daysleft8.png">
+    <img class="img2" src="img/daysleft8.png">
     <p>
         Come back to 8by8 and take another action for the AAPI community!
     </p>
