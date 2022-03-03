@@ -131,28 +131,10 @@
   {% block footer %}
   {% set nav_item_sep = '&nbsp;&nbsp;|'|safe %}
   <footer class="page-footer accent-4 mt-4 fs-14 text-center ksv-flow-{{flow_flavor or 'vr'}}">
-    <a href="{{url_for('main.index')}}">
-      <img class="mx-auto pt-1" src="{{url_for('static', filename='img/KSVotes_Logo_Primary_White.png')}}" alt="Home" />
-    </a>
     <hr class="clearfix w-100 d-md-none mt-0">
     <ul class="list-unstyled list-inline px-2 mb-3">
-      <li class="list-inline-item">{{_('0_footer_SOS')}}</li>
+      <li class="list-inline-item"></li>
     </ul>
-    {% if registrant.id is defined %}
-    <ul class="list-unstyled list-inline px-2 mb-3">
-      <li class="list-inline-item">
-        <a href="{{url_for('main.index')}}">{{_('nav_register_vote')}}</a>
-        {% if config['ENABLE_AB'] %}
-        {{nav_item_sep}}
-      </li>
-      <li class="list-inline-item">
-        <a href="{{url_for('main.ab1_election_picker')}}">{{_('nav_advance_ballot')}}</a>
-      </li>
-      {% else %}
-      </li>
-      {% endif %}
-    </ul>
-    {% endif %}
 
     <div class="px-2 mb-3" id="totals"></div>
 
@@ -168,13 +150,13 @@
       {% endif %}
     </ul>
     <ul class="list-unstyled list-inline px-2 mb-3">
-      <li class="list-inline-item"><a href="/terms">{{_('0_footer_tos')}}</a> {{nav_item_sep}}</li>
-      <li class="list-inline-item"><a href="/privacy-policy">{{_('0_footer_priv')}}</a> {{nav_item_sep}}</li>
-      <li class="list-inline-item"><a href="https://www.facebook.com/KSVotes.org/">{{_('0_footer_contact')}}</a></li>
+      <li class="list-inline-item"><a href="/about">{{_('0_footer_tos')}}</a> {{nav_item_sep}}</li>
+      <li class="list-inline-item"><a href="/about">{{_('0_footer_priv')}}</a> {{nav_item_sep}}</li>
+      <li class="list-inline-item"><a href="/about">{{_('0_footer_contact')}}</a></li>
     </ul>
     <div class="px-2 mb-3"><a href="/about">{{_('0_footer_about_us')}}</a></div>
     <div class="footer-copyright py-2 fs-12">
-      <a href="http://blueprintkansas.org/">© 2020 Blueprint Kansas</a>
+      <a href="http://blueprintkansas.org/">Copyright © 2021 8BY8</a>
     </div>
   </footer>
   {% endblock %}

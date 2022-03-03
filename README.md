@@ -33,7 +33,7 @@ This endpoint is used to check the voter registration status of a given person. 
 #### Error responses:
 ```
 {
-    "error": "Missing or invalid parameters: <field 1>, <field 2>, ..."
+    "error": "Missing parameters: <field 1>, <field 2>, ..."
 }
 ```
 ```
@@ -101,7 +101,7 @@ If a success response is returned then an email is sent to the given email with 
 ```
 ```
 {
-    "error": "Missing or invalid parameters: <field 1>, <field 2>, ..."
+    "error": "Missing parameters: <field 1>, <field 2>, ..."
 }
 ```
 ```
@@ -125,11 +125,15 @@ If a success response is returned then an email is sent to the given email with 
 }
 ```
 ### POST /email/
-This endpoint is used to send an endpoint out based on a template type. Valid template types are:
+This endpoint is used to send an email out based on a template type. Valid template types are:
 challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder
 #### Fields:
 * email
 * type
+#### Optional Fields (required for certain email types)
+* avatar (ex: kiko, lily, noah, henry) (required for badgeEarned, challengeWon, registered, and electionReminder)
+* daysLeft (required for badgeEarned)
+* badgesLeft (required for badgeEarned)
 #### Success responses:
 ```
 {
@@ -144,7 +148,12 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
 ```
 ```
 {
-    "error": "invalid template type"
+    "error": "invalid template type, valid types include: challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder"
+}
+```
+```
+{
+    "error": "Missing parameters: <field 1>, <field 2>, ..."
 }
 ```
 ## Repository and Environment Setup
@@ -271,12 +280,6 @@ PROJECT_ID={{your project}}
 # Include the top banner on every page that this is not the live production site.
 # STAGE_BANNER=true
 
-# Airtable is managed by ksvoterguide.org folks for early voting and ballot dropbox locations.
-# AIRTABLE_EV_KEY=sekrit
-# AIRTABLE_EV_BASE_ID=sekrit
-# to temporarily disable, leave the table names commented out
-# AIRTABLE_EV_TABLE='SoS 10-19-2020'
-# AIRTABLE_DROPBOX_TABLE='dropbox 2020'
 ```
 
 ### Crypt Key
