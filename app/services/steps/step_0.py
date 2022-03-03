@@ -1,5 +1,5 @@
 from app.services.steps import Step
-from app.models import ZIPCode, Registrant
+from app.models import Registrant
 from flask import current_app
 import os
 import sys
@@ -56,7 +56,6 @@ class Step_0(Step):
                 kmvi = myvoteinfo.MyVoteInfo(state='rockthevote', url='https://am-i-registered-to-vote.org/verify-registration.php')
             dob = dob.split('/')
             formatted_dob = "{year}-{month}-{day}".format(year=dob[2], month=dob[0], day=dob[1])
-            #print(name_first, name_last, formatted_dob, zipcode, state.upper(), 'decline', street, city, 'person@email.com')
             request = kmvi.lookup(
                 first_name = name_first,
                 last_name = name_last,
@@ -68,7 +67,6 @@ class Step_0(Step):
                 city = city,
                 email = 'person@email.com'
             )
-            #print(request)
             if request and (state.upper() == 'AR' or state.upper() == 'KS'):
                 sosrecs = request.parsed()
                 # if there are multiple, filter to only those that match the zipcode

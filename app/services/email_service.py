@@ -7,19 +7,18 @@ import os
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-
 from email.mime.application import MIMEApplication
+from datetime import timedelta, date
 
 class EmailService():
 
     SCOPES = ['https://mail.google.com/']
 
-    # Should convert this into a JSON file
     emailTypes = {
         'challengerWelcome': {
             'subject': 'Welcome to the 8by8 Challenge!',
             'h1': 'INVITE YOUR FRIENDS',
-            'p1': 'The challenge is on! Get 8 of your friends to take action on your 8by8 Challenge by [countdown_end_date].',
+            'p1': 'The challenge is on! Get 8 of your friends to take action on your 8by8 Challenge by ',
             'img1': '',
             'img1Class': 'hidden',
             'btn1': 'INVITE FRIENDS',
@@ -40,8 +39,8 @@ class EmailService():
             'h2': 'REMAINING...',
             'img2': 'img/daysleft6.png',
             'img2Class': '',
-            'p2': '6 days before ending the challenge',
-            'p3': '5 more badges winning!',
+            'p2': ' days before ending the challenge',
+            'p3': ' more badges winning!',
             'btn2': 'INVITE FRIENDS'
         },
         'challengeWon': {
@@ -158,11 +157,14 @@ class EmailService():
             return message
         except Exception as e:
             print('An error occurred: {}'.format(e))
-            return None
+            raise e
     
-    def create_template_message(self, to, type):
+    def create_template_message(self, to, type, daysLeft='', badgesLeft='', avatar=None):
         # Depending on the type of email, get the contents
-        content = self.emailTypes[type]
+        if type in self.emailTypes:
+            content = self.emailTypes[type]
+        else:
+            raise ValueError("invalid email type")
 
         message = MIMEMultipart()
         message['to'] = to
@@ -170,59 +172,83 @@ class EmailService():
 
         # Encapsulate the plain and HTML versions of the message body in an
         # 'alternative' part, so message agents can decide which they want to display.
-        msgAlternative = MIMEMultipart('alternative')
+        msgAlternative = MIMEMultipart('Seems like your emailing service doesn\'t support HTML :(')
         message.attach(msgAlternative)
 
+        # get day the challenge ends for welcome email
+        if type == 'challengerWelcome':
+            endDate = date.today() + timedelta(days=8)
+            endDateStr = endDate.strftime("%B %d, %Y") + '.'
+        else:
+            endDateStr = ''
+        if not daysLeft:
+            daysLeft = ''
+        if not badgesLeft:
+            badgesLeft =  ''
         # Make HTML for email, inputting all the variable content
         # make sure to escape curly braces by doubling them {{}}
         html = '''<html>
-        <head><style>
+        <head>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato&display=swap');
             body {{
                 margin:0;
             }}
             h1 {{
-                font-size:2.0em;
+                font-size:24pt;
                 font-weight:bold;
             }}
             h2 {{
-                font-size:1.7em;
+                font-size:18pt;
                 font-weight:bold;
             }}
             p {{
                 font-size:1.5em;
                 margin-left:10%;
                 margin-right:10%;
+                font-family: 'Lato', sans-serif;
             }}
             footer > p {{
                 font-size:1.1em;
             }}
-            img {{
+            .img8by8 {{
                 max-width:420px;
                 max-height:296px;
             }}
+            .img1 {{
+                max-width:315px;
+                max-height:222px;
+            }}
+            .img2 {{
+                max-width:280px;
+                max-height:198px;
+            }}
             button {{
+                letter-spacing: 0.03em;
                 border: solid black 0.25rem;
                 font-size:1.7em;
-                padding:0.5em;
+                padding:0.3em;
                 padding-left:1.4em;
                 padding-right:1.4em;
                 font-weight:bold;
-                border-top-right-radius:3em 100%;
-                border-top-left-radius:3em 100%;
-                border-bottom-left-radius:3em 100%;
-                border-bottom-right-radius:3em 100%;
+                border-top-right-radius:2em 100%;
+                border-top-left-radius:2em 100%;
+                border-bottom-left-radius:2em 100%;
+                border-bottom-right-radius:2em 100%;
             }}
             .btn1 {{
+                font-size:18pt;
                 background: linear-gradient(90deg, #02DDC3, #FFED10);
                 color: black;
                 margin-top: 0.8em;
             }}
             .btn2 {{
+                font-size:18pt;
                 background-color:black;
                 color:white;
             }}
             a {{
-                color:black;
+                color:black !important;
                 font-weight: bold;
             }}
             .content {{
@@ -252,26 +278,27 @@ class EmailService():
                 text-align:center;
                 padding:1.2em;
             }}
-        </style></head>
+        </style>
+        </head>
         <body>
         <div class="content">
-        <img src="cid:image0">
+        <img class="img8by8" src="cid:image0">
         <h1>{h1}</h1>
-        <p>{p1}</p>
-        <img class="{img1Class}" src="cid:image1">
+        <p>{p1}{endDate}</p>
+        <img class="img1 {img1Class}" src="cid:image1">
         <div>
             <button class="btn1">{btn1}</button>
         </div>
         <hr class="divider" width="25%">
         <h2>{h2}</h2>
-        <img class="{img2Class}" src="cid:image2">
-        <p>{p2}</p>
-        <p>{p3}</p>
+        <img class="img2 {img2Class}" src="cid:image2">
+        <p>{daysLeft}{p2}</p>
+        <p>{badgesLeft}{p3}</p>
         <button class="btn2">{btn2}</button>
         <div class="settingscontainer">
-            <a href="">Unsubscribe</a>
+            <a href="https://www.8by8.us/">Unsubscribe</a>
             <hr class="vr">
-            <a href="">Email settings</a>
+            <a href="https://www.8by8.us/">Email settings</a>
         </div>
         </div>
         </body>
@@ -283,7 +310,9 @@ class EmailService():
                 8BY8 is a nonprofit organization dedicated to stopping hate against Asian American Pacific Islander communities through voter registration and turnout.
             </p>
         </footer>
-        </html>'''.format(h1=content['h1'], p1=content['p1'], img1Class=content['img1Class'], btn1=content['btn1'], h2=content['h2'], img2Class=content['img2Class'], p2=content['p2'], p3=content['p3'], btn2=content['btn2'])
+        </html>'''.format(h1=content['h1'], p1=content['p1'], endDate=endDateStr, img1Class=content['img1Class'], 
+                          btn1=content['btn1'], h2=content['h2'], img2Class=content['img2Class'], daysLeft=daysLeft,
+                          p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], btn2=content['btn2'])
         msgText = MIMEText(html, 'html')
         msgAlternative.attach(msgText)
 
@@ -311,7 +340,6 @@ class EmailService():
             msgImage.add_header('Content-ID', '<image2>')
             message.attach(msgImage)
         
-
         raw_message = \
             base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
         return {'raw': raw_message.decode('utf-8')}

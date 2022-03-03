@@ -1,2 +1,0 @@
-This is a test file to send
-as an attachment on an email.
