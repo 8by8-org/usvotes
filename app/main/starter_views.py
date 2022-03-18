@@ -2,9 +2,7 @@ from __future__ import print_function
 from app.main import main
 from flask import g, url_for, render_template, request, redirect, session as http_session, abort, current_app, flash, jsonify, make_response
 from app.main.forms import *
-from app.models import *
 from app.services import SessionManager
-from app.services.ksvotes_redis import KSVotesRedis
 from app.services.steps import Step_0
 from app.main.helpers import guess_locale
 import json
@@ -235,7 +233,7 @@ def email():
     else:
         emailArr = requestData.get('email').split('@')
         if len(emailArr) != 2 or len(list(filter(None, emailArr[1].split('.')))) != 2:
-            resp = jsonify(error='invalid email')
+            resp = jsonify(error='invalid email: ' + requestData.get('email'))
             return make_response(resp, 400)
     if 'type' not in requestData:
         missingParams.append('type')
@@ -243,8 +241,10 @@ def email():
         if 'avatar' not in requestData or 'daysLeft' not in requestData or 'badgesLeft' not in requestData:
             resp = jsonify(error='for badgeEarned emails, parameters avatar, daysLeft, and badgesLeft are required')
             return make_response(resp, 400)
-    elif (requestData.get('type') == 'challengeWon' or requestData.get('type') == 'registered' or 
-          requestData.get('type') == 'electionReminder') and 'avatar' not in requestData:
+    elif (requestData.get('type') == 'registered' or requestData.get('type') == 'electionReminder') and ('avatar' not in requestData or 'firstName' not in requestData):
+        resp = jsonify(error='for ' + requestData.get('type') + ' emails, parameters avatar and firstName are required')
+        return make_response(resp, 400)
+    elif requestData.get('type') == 'challengeWon' and 'avatar' not in requestData:
         resp = jsonify(error='for ' + requestData.get('type') + ' emails, parameter avatar is required')
         return make_response(resp, 400)
     if missingParams:
@@ -260,18 +260,18 @@ def email():
     type = requestData.get('type')
     daysLeft = requestData.get('daysLeft')
     badgesLeft = requestData.get('badgesLeft')
+    firstName = requestData.get('firstName')
     avatar = requestData.get('avatar')
     # Attempt to create the email template that was asked for
     try:
-        message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, avatar)
+        message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, firstName, avatar)
         emailServ.send_message(message)
         return { 'status': 'email sent' }
-
     except ValueError: # value error if email type provided by user is not valid
         resp = jsonify(error='invalid template type, valid types include: challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder')
         return make_response(resp, 400)
     except Exception:
-        resp = jsonify(error='invalid email')
+        resp = jsonify(error='invalid email: ' + emailTo)
         return make_response(resp, 400)
 
 

@@ -1,5 +1,4 @@
 from app.services.steps import Step
-from app.models import Registrant
 from flask import current_app
 import os
 import sys
@@ -69,15 +68,6 @@ class Step_0(Step):
             )
             if request and (state.upper() == 'AR' or state.upper() == 'KS'):
                 sosrecs = request.parsed()
-                # if there are multiple, filter to only those that match the zipcode
-                if len(sosrecs) > 1:
-                    current_app.logger.debug("Found more than one match from SOS VV")
-                    reg = Registrant()
-                    sosrecs = list(filter(lambda rec: reg.zip_code_matches(rec['tree'], zipcode), sosrecs))
-                    current_app.logger.debug("filtered by ZIP to {} matches".format(len(sosrecs)))
-                    # if we have zero matches, then include them all so that the user can pick
-                    if len(sosrecs) == 0:
-                        sosrecs = request.parsed()
                 return sosrecs
             elif request and 'status' in request[0]:
                 return request[0]
