@@ -131,7 +131,8 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
 * email
 * type
 #### Optional Fields (required for certain email types)
-* avatar (ex: kiko, lily, noah, henry) (required for badgeEarned, challengeWon, registered, and electionReminder)
+* avatar (ex: 1, 2, 3, 4) (required for badgeEarned, challengeWon, registered, and electionReminder)
+* firstName (required for registered and electionReminder)
 * daysLeft (required for badgeEarned)
 * badgesLeft (required for badgeEarned)
 #### Success responses:
@@ -160,7 +161,6 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
 * [Database Setup](#database-setup)
 * [Setup & Installation](#setup-&-installation)
     * [Environmental Variables](#environmental-variables)
-    * [Migrate Database](#migrate-database)
     * [Run the application](#run-the-application)
 * [Tests](#tests)
 * [Styling](styling)
@@ -213,8 +213,6 @@ Create a .env file in the root directory and add the following variables.
 Note that the commented-out (`#`-prefixed) variables are optional.
 
 ```
-DATABASE_URL=postgresql://localhost/ksvotes_dev
-TESTING_DATABASE_URL=postgresql://localhost/ksvotes_test
 SECRET_KEY={{generate a secret key}}
 APP_CONFIG=development
 CRYPT_KEY={{generate a secret key | base64}}
@@ -246,7 +244,6 @@ PROJECT_ID={{your project}}
 # SES_ACCESS_KEY_ID={{from role with ses access}}
 # SES_SECRET_ACCESS_KEY={{from role with ses access}}
 
-# TEST_CLERK_EMAIL={{override the Clerk.email value for the TEST County}}
 # EMAIL_FROM={{override the From email header in all email}}
 # EMAIL_PREFIX={{prefix all Subject lines with a string}}
 
@@ -273,9 +270,6 @@ PROJECT_ID={{your project}}
 
 # Turn off HTTPS requirement. Probably set this to true in your local dev.
 # SSL_DISABLE=true
-
-# Turn on lots of SQL debugging.
-# SQL_DEBUG=true
 
 # Include the top banner on every page that this is not the live production site.
 # STAGE_BANNER=true
@@ -304,19 +298,6 @@ You can check that your local env has all of the requried environment variables 
 
 ```
 ($venv) make check
-```
-
-### Migrate Database
-Once setup is complete let's get our models imported into our development database.
-
-```
-$(venv) make dbupgrade
-```
-
-When you modify the model classes and want to apply to the schema:
-
-```
-$(venv) make update
 ```
 
 ### Run the Application

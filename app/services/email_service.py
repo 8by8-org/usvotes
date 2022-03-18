@@ -25,8 +25,8 @@ class EmailService():
             'h2': 'REMAINING...',
             'img2': 'img/daysleft8.png',
             'img2Class': '',
-            'p2': '8 days before ending the challenge',
-            'p3': '8 more badges winning!',
+            'p2': ' before ending the challenge',
+            'p3': ' badges winning!',
             'btn2': 'INVITE FRIENDS'
         },
         'badgeEarned': {
@@ -39,8 +39,8 @@ class EmailService():
             'h2': 'REMAINING...',
             'img2': 'img/daysleft6.png',
             'img2Class': '',
-            'p2': ' days before ending the challenge',
-            'p3': ' more badges winning!',
+            'p2': ' before ending the challenge',
+            'p3': ' badges winning!',
             'btn2': 'INVITE FRIENDS'
         },
         'challengeWon': {
@@ -89,7 +89,7 @@ class EmailService():
             'subject': 'You\'ve registered to vote!',
             'h1': 'THANK YOU FOR DOING YOUR PART.',
             'p1': 'You completed the first step in your voter registration! Remember to finish your registration at your state website or by mailing in your form. Your friend has earned a badge in their 8by8 Challenge!',
-            'img1': 'img/yang.png',
+            'img1': 'img/empty.png',
             'img1Class': '',
             'btn1': 'SHARE WITH FRIENDS',
             'h2': 'THERE\'S MORE YOU CAN DO',
@@ -103,7 +103,7 @@ class EmailService():
             'subject': 'Your election reminders are set!',
             'h1': 'THANK YOU FOR DOING YOUR PART.',
             'p1': 'You’ve set up election reminders. Your friend has earned a badge in their 8by8 Challenge!',
-            'img1': 'img/yang.png',
+            'img1': 'img/empty.png',
             'img1Class': '',
             'btn1': 'SHARE WITH FRIENDS',
             'h2': 'THERE\'S MORE YOU CAN DO',
@@ -159,7 +159,7 @@ class EmailService():
             print('An error occurred: {}'.format(e))
             raise e
     
-    def create_template_message(self, to, type, daysLeft='', badgesLeft='', avatar=None):
+    def create_template_message(self, to, type, daysLeft='', badgesLeft='', firstName='', avatar=None):
         # Depending on the type of email, get the contents
         if type in self.emailTypes:
             content = self.emailTypes[type]
@@ -175,32 +175,44 @@ class EmailService():
         msgAlternative = MIMEMultipart('Seems like your emailing service doesn\'t support HTML :(')
         message.attach(msgAlternative)
 
-        # get day the challenge ends for welcome email
+        if type == 'badgeEarned':
+            daysLeft = daysLeft + ' days'
+            badgesLeft =  badgesLeft + ' more'
+        elif type != 'challengerWelcome':
+            daysLeft = ''
+            badgesLeft =  ''
         if type == 'challengerWelcome':
             endDate = date.today() + timedelta(days=8)
             endDateStr = endDate.strftime("%B %d, %Y") + '.'
+            daysLeft = '8 days'
+            badgesLeft =  '8 more'
         else:
             endDateStr = ''
-        if not daysLeft:
-            daysLeft = ''
-        if not badgesLeft:
-            badgesLeft =  ''
+        
+        if type != 'registered' and type != 'electionReminder':
+            firstName = ''
+        if type == 'badgeEarned' or type == 'challengeWon':
+            buttonSize = '14'
+        else:
+            buttonSize = '16'
         # Make HTML for email, inputting all the variable content
         # make sure to escape curly braces by doubling them {{}}
         html = '''<html>
         <head>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Lato&family=Oswald&display=swap');
             body {{
                 margin:0;
             }}
             h1 {{
-                font-size:24pt;
+                font-size:22pt;
                 font-weight:bold;
+                font-family: 'Oswald', sans-serif;
             }}
             h2 {{
-                font-size:18pt;
+                font-size:16pt;
                 font-weight:bold;
+                font-family: 'Oswald', sans-serif;
             }}
             p {{
                 font-size:1.5em;
@@ -216,36 +228,49 @@ class EmailService():
                 max-height:296px;
             }}
             .img1 {{
-                max-width:315px;
+                max-width:16em;
                 max-height:222px;
             }}
             .img2 {{
-                max-width:280px;
-                max-height:198px;
+                max-width:252px;
+                max-height:179px;
+            }}
+            .imgcontainer {{
+                max-height:0;
+                position:relative;
+                opacity:0.999;
+            }}
+            .imgtext {{
+                font-size:14pt;
+                margin-top:153px;
+                margin-right: 8px;
+                display:inline-block;
             }}
             button {{
-                letter-spacing: 0.03em;
+                font-family: 'Oswald', sans-serif;
                 border: solid black 0.25rem;
-                font-size:1.7em;
-                padding:0.3em;
+                font-size:16pt;
+                padding:0.4em;
                 padding-left:1.4em;
                 padding-right:1.4em;
                 font-weight:bold;
-                border-top-right-radius:2em 100%;
-                border-top-left-radius:2em 100%;
-                border-bottom-left-radius:2em 100%;
-                border-bottom-right-radius:2em 100%;
+                border-top-right-radius:2.3em 100%;
+                border-top-left-radius:2.3em 100%;
+                border-bottom-left-radius:2.3em 100%;
+                border-bottom-right-radius:2.3em 100%;
+            }}
+            .btn1, btn2 {{
+                font-size:{buttonSize}pt;
             }}
             .btn1 {{
-                font-size:18pt;
                 background: linear-gradient(90deg, #02DDC3, #FFED10);
                 color: black;
                 margin-top: 0.8em;
             }}
             .btn2 {{
-                font-size:18pt;
                 background-color:black;
                 color:white;
+                margin-top: 0.7em;
             }}
             a {{
                 color:black !important;
@@ -272,11 +297,31 @@ class EmailService():
             .hidden {{
                 display:none;
             }}
+            .socialmedia a {{
+                margin: 14px
+            }}
+            .socialmedia {{
+                margin: 24px
+            }}
             footer {{
                 background-color:black;
                 color:white;
                 text-align:center;
                 padding:1.2em;
+            }}
+            @media only screen and (max-width: 500px) {{
+                p {{
+                    font-size:1.2em !important;
+                }}
+                footer > p, .settingscontainer {{
+                    font-size:1.0em !important;
+                }}
+                .img1 {{
+                    max-width:11em;
+                }}
+                .img2 {{
+                    max-width:13em;
+                }}
             }}
         </style>
         </head>
@@ -285,6 +330,9 @@ class EmailService():
         <img class="img8by8" src="cid:image0">
         <h1>{h1}</h1>
         <p>{p1}{endDate}</p>
+        <div class="imgcontainer">
+            <h2 class="imgtext">{firstName}</h2>
+        </div>
         <img class="img1 {img1Class}" src="cid:image1">
         <div>
             <button class="btn1">{btn1}</button>
@@ -292,8 +340,8 @@ class EmailService():
         <hr class="divider" width="25%">
         <h2>{h2}</h2>
         <img class="img2 {img2Class}" src="cid:image2">
-        <p>{daysLeft}{p2}</p>
-        <p>{badgesLeft}{p3}</p>
+        <p><b>{daysLeft}</b>{p2}</p>
+        <p><b>{badgesLeft}</b>{p3}</p>
         <button class="btn2">{btn2}</button>
         <div class="settingscontainer">
             <a href="https://www.8by8.us/">Unsubscribe</a>
@@ -303,6 +351,17 @@ class EmailService():
         </div>
         </body>
         <footer>
+            <div class="socialmedia">
+                <a href="https://www.facebook.com/8by8vote" target="_blank">
+                    <img width="20" height="20" src="cid:facebook">
+                </a>
+                <a href="https://www.linkedin.com/company/8by8vote/" target="_blank">
+                    <img width="20" height="20" src="cid:linkedin">
+                </a>
+                <a href="https://www.instagram.com/8by8vote/" target="_blank">
+                    <img width="20" height="20" src="cid:instagram">
+                </a>
+            </div>
             <p>
                 Copyright &copy; 2021
             </p>
@@ -310,7 +369,7 @@ class EmailService():
                 8BY8 is a nonprofit organization dedicated to stopping hate against Asian American Pacific Islander communities through voter registration and turnout.
             </p>
         </footer>
-        </html>'''.format(h1=content['h1'], p1=content['p1'], endDate=endDateStr, img1Class=content['img1Class'], 
+        </html>'''.format(buttonSize=buttonSize, h1=content['h1'], p1=content['p1'], endDate=endDateStr, firstName=firstName.upper(), img1Class=content['img1Class'], 
                           btn1=content['btn1'], h2=content['h2'], img2Class=content['img2Class'], daysLeft=daysLeft,
                           p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], btn2=content['btn2'])
         msgText = MIMEText(html, 'html')
@@ -340,6 +399,22 @@ class EmailService():
             msgImage.add_header('Content-ID', '<image2>')
             message.attach(msgImage)
         
+        fp = open('img/facebook.png', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+        msgImage.add_header('Content-ID', '<facebook>')
+        message.attach(msgImage)
+        fp = open('img/linkedin.png', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+        msgImage.add_header('Content-ID', '<linkedin>')
+        message.attach(msgImage)
+        fp = open('img/instagram.png', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+        msgImage.add_header('Content-ID', '<instagram>')
+        message.attach(msgImage)
+        
         raw_message = \
             base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
         return {'raw': raw_message.decode('utf-8')}
@@ -364,22 +439,27 @@ class EmailService():
 
         # We reference the img in the IMG SRC attribute by the ID we give it below
         html = '''<html>
-        <head><style>
+        <head>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Lato&family=Oswald&display=swap');
             body {
                 margin:0;
             }
             h1 {
-                font-size:2.0em;
+                font-size:22pt;
                 font-weight:bold;
+                font-family: 'Oswald', sans-serif;
             }
             h2 {
-                font-size:1.7em;
+                font-size:16pt;
                 font-weight:bold;
+                font-family: 'Oswald', sans-serif;
             }
             p {
                 font-size:1.5em;
                 margin-left:10%;
                 margin-right:10%;
+                font-family: 'Lato', sans-serif;
             }
             footer > p {
                 font-size:1.1em;
@@ -389,21 +469,23 @@ class EmailService():
                 max-height:296px;
             }
             button {
+                font-family: 'Oswald', sans-serif;
                 background-color:black;
                 color:white;
-                border:black;
-                font-size:1.7em;
-                padding:0.5em;
-                padding-left:1.6em;
-                padding-right:1.6em;
+                letter-spacing: 0.03em;
+                border: solid black 0.25rem;
+                font-size:16pt;
+                padding:0.4em;
+                padding-left:1.4em;
+                padding-right:1.4em;
                 font-weight:bold;
-                border-top-right-radius:25%100%;
-                border-top-left-radius:25%100%;
-                border-bottom-left-radius:25%100%;
-                border-bottom-right-radius:25%100%;
+                border-top-right-radius:2.3em 100%;
+                border-top-left-radius:2.3em 100%;
+                border-bottom-left-radius:2.3em 100%;
+                border-bottom-right-radius:2.3em 100%;
             }
             a {
-                color:black;
+                color:black !important;
                 font-weight: bold;
             }
             .content {
@@ -424,13 +506,31 @@ class EmailService():
                 margin-top:3em;
                 margin-bottom:3em;
             }
+            .hidden {
+                display:none;
+            }
+            .socialmedia a {
+                margin: 14px
+            }
+            .socialmedia {
+                margin: 24px
+            }
             footer {
                 background-color:black;
                 color:white;
                 text-align:center;
                 padding:1.2em;
             }
-        </style></head>
+            @media only screen and (max-width: 500px) {
+                p {
+                    font-size:1.2em !important;
+                }
+                footer > p, .settingscontainer {
+                    font-size:1.0em !important;
+                }
+            }
+        </style>
+        </head>
         <body>
         <div class="content">
         <img src="cid:image1">
@@ -447,13 +547,24 @@ class EmailService():
         </p>
         <button>LEARN MORE</button>
         <div class="settingscontainer">
-            <a href="">Unsubscribe</a>
+            <a href="https://www.8by8.us/">Unsubscribe</a>
             <hr class="vr">
-            <a href="">Email settings</a>
+            <a href="https://www.8by8.us/">Email settings</a>
         </div>
         </div>
         </body>
         <footer>
+            <div class="socialmedia">
+                <a href="https://www.facebook.com/8by8vote" target="_blank">
+                    <img width="20" height="20" src="cid:facebook">
+                </a>
+                <a href="https://www.linkedin.com/company/8by8vote/" target="_blank">
+                    <img width="20" height="20" src="cid:linkedin">
+                </a>
+                <a href="https://www.instagram.com/8by8vote/" target="_blank">
+                    <img width="20" height="20" src="cid:instagram">
+                </a>
+            </div>
             <p>
                 Copyright &copy; 2021
             </p>
@@ -472,6 +583,22 @@ class EmailService():
 
         # Define the image's ID as referenced above
         msgImage.add_header('Content-ID', '<image1>')
+        message.attach(msgImage)
+
+        fp = open('img/facebook.png', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+        msgImage.add_header('Content-ID', '<facebook>')
+        message.attach(msgImage)
+        fp = open('img/linkedin.png', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+        msgImage.add_header('Content-ID', '<linkedin>')
+        message.attach(msgImage)
+        fp = open('img/instagram.png', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+        msgImage.add_header('Content-ID', '<instagram>')
         message.attach(msgImage)
         
         img_bin = base64.b64decode(file.replace('data:image/png;base64,', '').replace('"', '').replace("'", ''))

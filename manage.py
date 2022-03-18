@@ -1,23 +1,19 @@
 import os
 
-from app import create_app, db
-from app.models import *
+from app import create_app
 from flask_script import Manager, Shell
-from flask_migrate import Migrate, MigrateCommand
 from flask import url_for, g
 
 app = create_app(os.getenv('APP_CONFIG') or 'default')
 manager = Manager(app)
-migrate = Migrate(app, db)
 
 
 def make_shell_context():
     g.locale = 'en'
-    return dict(app=app, db=db)
+    return dict(app=app)
 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
-manager.add_command("db", MigrateCommand)
 
 
 def write_pid_file():
@@ -44,41 +40,6 @@ def list_routes():
     for line in sorted(output):
         print(line)
 
-
-@manager.command
-def load_clerks():
-    Clerk.load_fixtures()
-
-
-@manager.command
-def load_demo():
-    Registrant.load_fixtures()
-
-
-@manager.command
-def load_zipcodes():
-    ZIPCode.load_fixtures()
-
-
-@manager.command
-def redact_pii():
-    from datetime import datetime, timedelta
-    days_ago = timedelta(days=int(os.getenv('REDACT_OLDER_THAN_DAYS', 2)))
-    Registrant.redact_pii(datetime.utcnow() - days_ago)
-
-
-@manager.command
-def export_registrants():
-    from app.services.registrant_exporter import RegistrantExporter
-    if os.getenv('SINCE'):
-      regs = Registrant.query.filter(Registrant.updated_at > os.getenv('SINCE')).yield_per(200).enable_eagerloads(False)
-    else:
-      regs = Registrant.query.yield_per(200).enable_eagerloads(False)
-
-    exporter = RegistrantExporter(regs)
-    exporter.export()
-
-
 @manager.command
 def generate_crypt_key():
     """ Generate a new valid CRYPT_KEY """
@@ -101,8 +62,6 @@ def generate_demo_uuid():
 def check_configuration():
     """ Ensure our configuration looks plausible """
     required_env_settings = [
-        'DATABASE_URL',
-        'TESTING_DATABASE_URL',
         'SECRET_KEY',
         'APP_CONFIG',
         'CRYPT_KEY',
