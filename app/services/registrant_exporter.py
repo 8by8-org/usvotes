@@ -1,6 +1,5 @@
 import csv
 import sys
-from app.models import Registrant
 
 class RegistrantExporter():
 

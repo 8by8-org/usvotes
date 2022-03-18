@@ -2,14 +2,12 @@ import os
 from flask import Flask, request, g, abort, session as http_session, url_for
 from datetime import timedelta
 from flask_sslify import SSLify
-from flask_sqlalchemy import SQLAlchemy
 from flask_babel import Babel
 from config import config, LANGUAGES
 import logging
 from flask.logging import default_handler
 from flask_cors import CORS
 
-db = SQLAlchemy()
 babel = Babel()
 
 def create_app(script_info):
@@ -33,7 +31,6 @@ def create_app(script_info):
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=int(app.config['SESSION_TTL']))
 
     config[config_name].init_app(app)
-    db.init_app(app)
     babel.init_app(app)
 
     # logging config

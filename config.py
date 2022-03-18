@@ -7,8 +7,6 @@ load_dotenv(dotenv_path=".env", verbose=True)
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "devsk")
-    SQLALCHEMY_COMMIT_ON_TEARDOWN = False
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
     GA_KEY = os.environ.get('GA_KEY')
     RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_KEY')
     RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_SECRET')
@@ -27,7 +25,6 @@ class Config:
     ENABLE_VOTING_LOCATION = os.getenv('ENABLE_VOTING_LOCATION', False)
     FAIL_EMAIL = os.getenv('FAIL_EMAIL', 'fail@ksvotes.org')
     STAGE_BANNER = os.getenv('STAGE_BANNER', False)
-    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 
     @staticmethod
     def init_app(app):
@@ -36,21 +33,16 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
-    SQLALCHEMY_ECHO = True
 
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get("TESTING_DATABASE_URL")
     WTF_CSRF_ENABLED = False
-    SQLALCHEMY_ECHO = True if os.getenv('SQL_DEBUG') else False
     SEND_EMAIL = False
 
 
 class ProductionConfig(Config):
     JSONIFY_PRETTYPRINT_REGULAR = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
 
 
 config = {

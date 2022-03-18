@@ -15,19 +15,6 @@ crypt-key:
 demo-uuid:
 	python manage.py generate_demo_uuid
 
-dbmigrate:
-	python manage.py db migrate
-
-dbupgrade:
-	python manage.py db upgrade
-
-update: dbmigrate dbupgrade
-
-migrate: dbupgrade
-
-db:
-	@psql `grep ^DATABASE_URL= .env | sed -e "s/DATABASE_URL=//"`
-
 shell:
 	python manage.py shell
 
@@ -86,4 +73,4 @@ start-services:
 stop-services:
 	docker-compose down
 
-.PHONY: deps venv test dbmigrate run testcov fixtures redact export start-services stop-services
+.PHONY: deps venv test run testcov fixtures redact export start-services stop-services

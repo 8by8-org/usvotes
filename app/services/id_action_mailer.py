@@ -1,5 +1,4 @@
 from flask import current_app
-from app.models import Clerk
 from app.services.ses_mailer import SESMailer
 from flask_babel import lazy_gettext
 from jinja2 import Environment, FileSystemLoader
