@@ -1,7 +1,7 @@
 # USVotes
 
 ## API Documentation
-#### Current Base URL: https://usvotes-3ulcxuufea-uw.a.run.app
+#### Current Base URL: https://usvotes-6vsnwycl4q-uw.a.run.app
 ### POST /registered/
 This endpoint is used to check the voter registration status of a given person. It outputs whether or not the person is registered to vote.
 #### Fields:
@@ -12,7 +12,7 @@ This endpoint is used to check the voter registration status of a given person. 
 * name_last
 * dob
 * zip
-#### Success responses:
+#### Success responses (200):
 ```
 {
     "registered": true
@@ -30,7 +30,7 @@ This endpoint is used to check the voter registration status of a given person. 
     "status": "dropped"
 }
 ```
-#### Error responses:
+#### Error responses (400):
 ```
 {
     "error": "Missing parameters: <field 1>, <field 2>, ..."
@@ -71,17 +71,17 @@ This endpoint is used to fill out the [Federal Voter Registration Form](https://
 * eighteenPlus
 * party
 * idNumber
-#### Success responses:
+#### Success responses (200):
 If a success response is returned then an email is sent to the given email with a PDF of the filled out voter registration form
 ```
 {
     "status": "email sent"
 }
 ```
-#### Error responses:
+#### Error responses (400):
 ```
 {
-    "error": "invalid email"
+    "error": "invalid email: <email>"
 }
 ```
 ```
@@ -135,16 +135,16 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
 * firstName (required for registered and electionReminder)
 * daysLeft (required for badgeEarned)
 * badgesLeft (required for badgeEarned)
-#### Success responses:
+#### Success responses (200):
 ```
 {
     "status": "email sent"
 }
 ```
-#### Error responses:
+#### Error responses (400):
 ```
 {
-    "error": "invalid email"
+    "error": "invalid email: <email>"
 }
 ```
 ```
@@ -155,6 +155,21 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
 ```
 {
     "error": "Missing parameters: <field 1>, <field 2>, ..."
+}
+```
+```
+{
+    "error": "for <type> emails, parameter(s) <field 1>, <field 2>, ... are required"
+}
+```
+```
+{
+    "error": ""
+}
+```
+```
+{
+    "error": ""
 }
 ```
 ## Repository and Environment Setup
@@ -278,11 +293,7 @@ PROJECT_ID={{your project}}
 
 ### Crypt Key
 
-The encryption key is kind of particular, it needs to be 32 bytes long and URl-safe base64 encoded.  Use this command to generate one for you using the cryptography library:
-
-```
-$(venv) make crypt-key
-```
+The encryption key is kind of particular, it needs to be 32 bytes long and URl-safe base64 encoded.
 
 ### Demo uuid
 
@@ -315,16 +326,6 @@ Navigate to [localhost:5000](http://localhost:5000)
 To run all unit tests:
 ```
 $(venv) make test
-```
-
-To run all unit tests with coverage:
-```
-$(venv) make testcov
-```
-
-To run all browsers tests (requires [Chromedriver](https://chromedriver.chromium.org/getting-started)):
-```
-$(venv) make jstest
 ```
 
 ## Styling

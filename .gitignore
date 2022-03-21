@@ -3,6 +3,7 @@ venv
 .env
 .coverage
 .pytest_cache
+.dockerignore
 *__pycache__
 *.DS_Store
 node_modules
@@ -16,3 +17,12 @@ messages.pot
 *.swp
 token.pickle
 credentials.json
+slim.report.json
+test-apparmor-profile
+test-seccomp.json
+docker-slim
+docker-slim-sensor
+creport.json
+bin
+probeCmds.json
+mybody*.json
