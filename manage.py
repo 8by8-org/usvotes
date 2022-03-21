@@ -41,15 +41,6 @@ def list_routes():
         print(line)
 
 @manager.command
-def generate_crypt_key():
-    """ Generate a new valid CRYPT_KEY """
-    from cryptography.fernet import Fernet
-    key = Fernet.generate_key()
-    print("\nAdd this to your .env file:")
-    print('CRYPT_KEY="{}"'.format(key.decode('ascii')))
-
-
-@manager.command
 def generate_demo_uuid():
     import uuid
     this_uuid = uuid.uuid4().hex

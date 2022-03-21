@@ -21,14 +21,8 @@ shell:
 run:
 	python manage.py runserver -h 0.0.0.0 -p 8080
 
-testcov:
-	py.test --cov-report term-missing --cov --ignore=node_modules
-
 test: check
 	py.test -s -vv app/
-
-jstest:
-	behave
 
 css:
 	npm run css
@@ -73,4 +67,4 @@ start-services:
 stop-services:
 	docker-compose down
 
-.PHONY: deps venv test run testcov fixtures redact export start-services stop-services
+.PHONY: deps venv test run fixtures redact export start-services stop-services
