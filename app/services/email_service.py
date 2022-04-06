@@ -33,11 +33,11 @@ class EmailService():
             'subject': 'You got badges!',
             'h1': 'GREAT PROGRESS!',
             'p1': 'You’ve earned badges! Go to 8by8 to check them out.',
-            'img1': 'img/avatar.png',
+            'img1': 'img/badges3.png',
             'img1Class': '',
             'btn1': 'CHECK OUT YOUR BADGES',
             'h2': 'REMAINING...',
-            'img2': 'img/daysleft6.png',
+            'img2': '',
             'img2Class': '',
             'p2': ' before ending the challenge',
             'p3': ' badges winning!',
@@ -89,7 +89,7 @@ class EmailService():
             'subject': 'You\'ve registered to vote!',
             'h1': 'THANK YOU FOR DOING YOUR PART.',
             'p1': 'You completed the first step in your voter registration! Remember to finish your registration at your state website or by mailing in your form. Your friend has earned a badge in their 8by8 Challenge!',
-            'img1': 'img/empty.png',
+            'img1': '',
             'img1Class': '',
             'btn1': 'SHARE WITH FRIENDS',
             'h2': 'THERE\'S MORE YOU CAN DO',
@@ -103,7 +103,7 @@ class EmailService():
             'subject': 'Your election reminders are set!',
             'h1': 'THANK YOU FOR DOING YOUR PART.',
             'p1': 'You’ve set up election reminders. Your friend has earned a badge in their 8by8 Challenge!',
-            'img1': 'img/empty.png',
+            'img1': '',
             'img1Class': '',
             'btn1': 'SHARE WITH FRIENDS',
             'h2': 'THERE\'S MORE YOU CAN DO',
@@ -164,6 +164,7 @@ class EmailService():
         if type in self.emailTypes:
             content = self.emailTypes[type]
         else:
+            print('value error')
             raise ValueError("invalid email type")
 
         message = MIMEMultipart()
@@ -176,7 +177,13 @@ class EmailService():
         message.attach(msgAlternative)
 
         if type == 'badgeEarned':
-            daysLeft = daysLeft + ' days'
+            content['img2'] = 'img/daysleft' + daysLeft + '.png'
+            if daysLeft == '1':
+                daysLeft = daysLeft + ' day'
+            else:
+                daysLeft = daysLeft + ' days'
+            if badgesLeft == '1':
+                content['p3'] = content['p3'][:6] + content['p3'][7:]
             badgesLeft =  badgesLeft + ' more'
         elif type != 'challengerWelcome':
             daysLeft = ''
@@ -188,8 +195,9 @@ class EmailService():
             badgesLeft =  '8 more'
         else:
             endDateStr = ''
-        
-        if type != 'registered' and type != 'electionReminder':
+        if type == 'registered' or type == 'electionReminder':
+            content['img1'] = 'img/avatar' + avatar + '.png'
+        else:
             firstName = ''
         if type == 'badgeEarned' or type == 'challengeWon':
             buttonSize = '14'
