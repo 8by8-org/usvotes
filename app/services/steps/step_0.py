@@ -52,7 +52,7 @@ class Step_0(Step):
             if state.upper() == 'AR':
                 kmvi = myvoteinfo.MyVoteInfo(state='ar', url='https://www.voterview.ar-nova.org/voterview')
             elif state.upper() != 'KS':
-                kmvi = myvoteinfo.MyVoteInfo(state='rockthevote', url='https://am-i-registered-to-vote.org/verify-registration.php')
+                kmvi = myvoteinfo.MyVoteInfo(state='rockthevote', url='https://register.rockthevote.com/lookup')
             dob = dob.split('/')
             formatted_dob = "{year}-{month}-{day}".format(year=dob[2], month=dob[0], day=dob[1])
             request = kmvi.lookup(
