@@ -162,16 +162,6 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
     "error": "for <type> emails, parameter(s) <field 1>, <field 2>, ... are required"
 }
 ```
-```
-{
-    "error": ""
-}
-```
-```
-{
-    "error": ""
-}
-```
 ## Repository and Environment Setup
 * [Database Setup](#database-setup)
 * [Setup & Installation](#setup-&-installation)
@@ -366,5 +356,15 @@ lazy_gettext('some_key_string')
 # Then in your terminal
 # update the translation files
 % make locales
+```
+
+## Docker Commands to push to GCP
+These commands build a docker image of the project, test the image, and push it to GCP Artifact Registry
+```
+docker build .
+docker-slim build --preserve-path=/usr/bin --preserve-path=/usr/include --preserve-path=/usr/local --http-probe-cmd-file probeCmds.json <image>
+docker run -it --rm -p 8080:8080 --name dslimflask <image>.slim
+docker tag <image ID> us-west2-docker.pkg.dev/by8-318322/images/<image name>
+docker push us-west2-docker.pkg.dev/by8-318322/images/<image name>
 ```
 

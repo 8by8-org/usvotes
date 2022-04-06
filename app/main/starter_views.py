@@ -15,7 +15,7 @@ import tracemalloc
 tracemalloc.start(10)
 
 # backend api endpoint for checking voter registration status
-@main.route('/registered/', methods=["POST"])
+@main.route('/registered', strict_slashes=False, methods=["POST"])
 @cross_origin(origin='*')
 def registered():
     # accept JSON data, default to Form data if no JSON in request
@@ -84,6 +84,7 @@ def registered():
         dob=requestData.get('dob'),
         zipcode=requestData.get('zip')
     )
+    #print(regFound)
     if (regFound and 'status' not in regFound) or (regFound and 'status' in regFound and regFound['status'] == 'active'):
         return jsonify({ 'registered': True })
     elif regFound and 'status' in regFound:
@@ -92,7 +93,7 @@ def registered():
         return { 'registered': False, 'status': 'not found' }
 
 # backend api endpoint for filling out the Federal Form to register to vote
-@main.route('/registertovote/', methods=['POST'])
+@main.route('/registertovote', strict_slashes=False, methods=['POST'])
 @cross_origin(origin='*')
 def reg():
     # accept JSON data, default to Form data if no JSON in request
@@ -200,25 +201,14 @@ def reg():
         img = ffs.as_image()
         # use Gmail API to send email to the user with their voter reg form
         emailServ = EmailService()
-        '''
-        # Simple email for testing Gmail API
-        emailMsg = 'This is a test of the Gmail API'
-        mimeMessage = MIMEMultipart()
-        mimeMessage['to'] = 'tylerwong2000@gmail.com'
-        mimeMessage['subject'] = 'Test Gmail API'
-        mimeMessage.attach(MIMEText(emailMsg, 'plain'))
-        raw_string = base64.urlsafe_b64encode(mimeMessage.as_bytes()).decode()
-        message = service.users().messages().send(userId='me', body={'raw': raw_string}).execute()
-        print(message)
-        '''
         to = email
-        subject = 'Register to vote with 8by8'
+        subject = 'Here’s your voter registration form'
         messageWithAttachment = emailServ.create_message_with_attachment(to, subject, img)
         emailServ.send_message(messageWithAttachment)
     return { 'status': 'email sent' }
 
 
-@main.route('/email/', methods=['POST'])
+@main.route('/email', strict_slashes=False, methods=['POST'])
 @cross_origin(origin='*')
 def email():
     # accept JSON data, default to Form data if no JSON in request
