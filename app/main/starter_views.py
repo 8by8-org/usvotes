@@ -11,6 +11,9 @@ from app.services.usps_api import USPS_API
 from app.services.email_service import EmailService
 from flask_cors import cross_origin
 
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
+
 import tracemalloc
 tracemalloc.start(10)
 
@@ -256,13 +259,31 @@ def email():
     try:
         message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, firstName, avatar)
         emailServ.send_message(message)
+        if type == 'challengerWelcome':
+            # Start the scheduler
+            sched = BackgroundScheduler()
+            sched.start()
+
+            currDay = datetime.today()
+            challengeEnd = currDay.replace(day=currDay.day+8)
+
+            # Store the job in a variable in case we want to cancel it.
+            # The job will be executed on the day the challenge ends
+            job = sched.add_job(delay_send, 'date', run_date=challengeEnd, args=[emailTo])
         return { 'status': 'email sent' }
     except ValueError: # value error if email type provided by user is not valid
         resp = jsonify(error='invalid template type, valid types include: challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder')
         return make_response(resp, 400)
-    except Exception:
+    except Exception as e:
         resp = jsonify(error='invalid email: ' + emailTo)
         return make_response(resp, 400)
+
+def delay_send(emailTo):
+    # Initialize email service that uses Gmail API 
+    emailServ = EmailService()
+    message = emailServ.create_template_message(emailTo, 'challengeIncomplete')
+    emailServ.send_message(message)
+    return 'delayed email sent'
 
 
 ''' Old endpoints from KSVotes '''
