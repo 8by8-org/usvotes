@@ -9,10 +9,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from email.mime.application import MIMEApplication
 from datetime import timedelta, date
+#from google.cloud import scheduler_v1
 
 class EmailService():
 
-    SCOPES = ['https://mail.google.com/']
+    SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
     emailTypes = {
         'challengerWelcome': {
@@ -159,7 +160,7 @@ class EmailService():
             print('An error occurred: {}'.format(e))
             raise e
     
-    def create_template_message(self, to, type, daysLeft='', badgesLeft='', firstName='', avatar=None):
+    def create_template_message(self, to, type, daysLeft='', badgesLeft='', firstName='', avatar=None, isChallenger=''):
         # Depending on the type of email, get the contents
         if type in self.emailTypes:
             content = self.emailTypes[type]
@@ -176,6 +177,7 @@ class EmailService():
         msgAlternative = MIMEMultipart('Seems like your emailing service doesn\'t support HTML :(')
         message.attach(msgAlternative)
 
+        paragraph = content['p1']
         if type == 'badgeEarned':
             content['img2'] = 'img/daysleft' + daysLeft + '.png'
             if daysLeft == '1':
@@ -197,6 +199,9 @@ class EmailService():
             endDateStr = ''
         if type == 'registered' or type == 'electionReminder':
             content['img1'] = 'img/avatar' + avatar + '.png'
+            if isChallenger and isChallenger.lower() == 'true':
+                index = content['p1'].find('Your friend has')
+                paragraph = content['p1'][:index]
         else:
             firstName = ''
         if type == 'badgeEarned' or type == 'challengeWon':
@@ -377,7 +382,7 @@ class EmailService():
                 8BY8 is a nonprofit organization dedicated to stopping hate against Asian American Pacific Islander communities through voter registration and turnout.
             </p>
         </footer>
-        </html>'''.format(buttonSize=buttonSize, h1=content['h1'], p1=content['p1'], endDate=endDateStr, firstName=firstName.upper(), img1Class=content['img1Class'], 
+        </html>'''.format(buttonSize=buttonSize, h1=content['h1'], p1=paragraph, endDate=endDateStr, firstName=firstName.upper(), img1Class=content['img1Class'], 
                           btn1=content['btn1'], h2=content['h2'], img2Class=content['img2Class'], daysLeft=daysLeft,
                           p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], btn2=content['btn2'])
         msgText = MIMEText(html, 'html')
