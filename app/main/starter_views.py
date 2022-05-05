@@ -11,8 +11,10 @@ from app.services.usps_api import USPS_API
 from app.services.email_service import EmailService
 from flask_cors import cross_origin
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
+#from google.cloud import scheduler_v1
+import os
 
 import tracemalloc
 tracemalloc.start(10)
@@ -157,6 +159,7 @@ def reg():
         resp = jsonify(error=error)
         return make_response(resp, 400)
     # check if the address is valid (via USPS address verification)
+    # instead of an error, send a warning if address is invalid right after email is sent
     form = FormVR3(
         addr = requestData.get('street'),
         city = requestData.get('city'),
@@ -165,8 +168,7 @@ def reg():
     )
     usps_api = USPS_API(form.data)
     validated_addresses = usps_api.validate_addresses()
-    if not validated_addresses:
-        otherErrors.append('(street, city, state, zip) do not form a valid address')
+    
     if otherErrors:
         error = otherErrors[0]
         for i in range(1, len(otherErrors)):
@@ -208,6 +210,8 @@ def reg():
         subject = 'Here’s your voter registration form'
         messageWithAttachment = emailServ.create_message_with_attachment(to, subject, img)
         emailServ.send_message(messageWithAttachment)
+        if not validated_addresses:
+            return { 'status': 'email sent', 'warning': '(street, city, state, zip) do not form a valid address' }
     return { 'status': 'email sent' }
 
 
@@ -255,21 +259,23 @@ def email():
     badgesLeft = requestData.get('badgesLeft')
     firstName = requestData.get('firstName')
     avatar = requestData.get('avatar')
+    isChallenger = requestData.get('isChallenger')
     # Attempt to create the email template that was asked for
     try:
-        message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, firstName, avatar)
+        message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, firstName, avatar, isChallenger)
         emailServ.send_message(message)
         if type == 'challengerWelcome':
             # Start the scheduler
-            sched = BackgroundScheduler()
-            sched.start()
+            #sched = BackgroundScheduler()
+            #sched.start()
 
             currDay = datetime.today()
-            challengeEnd = currDay.replace(day=currDay.day+8)
+            #challengeEnd = currDay + timedelta(days=8)
 
             # Store the job in a variable in case we want to cancel it.
             # The job will be executed on the day the challenge ends
-            job = sched.add_job(delay_send, 'date', run_date=challengeEnd, args=[emailTo])
+            
+            #job = sched.add_job(delay_send, 'date', run_date=challengeEnd, args=[emailTo])
         return { 'status': 'email sent' }
     except ValueError: # value error if email type provided by user is not valid
         resp = jsonify(error='invalid template type, valid types include: challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder')
@@ -285,6 +291,54 @@ def delay_send(emailTo):
     emailServ.send_message(message)
     return 'delayed email sent'
 
+'''
+def create_scheduled_job():
+    client = scheduler_v1.CloudSchedulerClient.from_service_account_info({
+        "type": "service_account",
+        "project_id": os.getenv('PROJECT_ID'),
+        "private_key_id": os.getenv('PRIVATE_KEY_ID'),
+        "private_key": os.getenv('PRIVATE_KEY'),
+        "client_email": os.getenv('CLIENT_EMAIL'),
+        "client_id": os.getenv('CLIENT_ID_GCS'),
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/emailscheduler%40by8-318322.iam.gserviceaccount.com"
+        }
+    )
+
+    parent= client.location_path(os.getenv('PROJECT_ID'),'us-west1')
+
+    job={"name":"projects/your-project/locations/app-engine-location/jobs/traing_for_model",
+        "description":"this is for testing training model",
+        "http_target": {"uri":"https://us-central1-gerald-automl-test.cloudfunctions.net/automl-trainmodel-1-test-for-cron-job"},
+        "schedule":"0 10 * * *",
+        "time_zone":"America/Los_Angeles",
+        }
+    job = {
+        "name": "",
+        "http_target": {
+            "http_method": "POST",
+            "uri": uri,
+            "headers": {"Content-Type": "application/json"},
+            "body": {'email': 'tylerwong2000@gmail.com',
+                    'type': 'challengeIncomplete',
+                    'avatar': '2',
+                    'daysLeft': '3',
+                    'badgesLeft': '4',
+                    'firstName': 'Wesley'},
+        },
+        "schedule": "* * * * *",
+        "time_zone":"America/Los_Angeles",
+    }
+
+    # https://googleapis.dev/python/cloudscheduler/latest/scheduler_v1/cloud_scheduler.html
+    # use update_job to update the schedule of the job to sent emails
+
+    response = client.create_job(parent, job)
+
+    training_job= client.create_job(parent,job)
+'''
 
 ''' Old endpoints from KSVotes '''
 # default route
@@ -292,6 +346,11 @@ def delay_send(emailTo):
 def index():
     g.locale = guess_locale()
     return render_template('about.html')
+
+@main.route('/privacy-policy', methods=['GET'])
+def privacy():
+    g.locale = guess_locale()
+    return render_template('privacy-policy.html')
 
 @main.route('/about', methods=['GET'])
 def about_us():
