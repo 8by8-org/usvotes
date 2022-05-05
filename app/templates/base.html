@@ -137,26 +137,13 @@
     </ul>
 
     <div class="px-2 mb-3" id="totals"></div>
-
-    <ul class="list-unstyled list-inline px-2 mb-3 locale">
-      {% if g.locale == 'es' %}
-      <li class="list-inline-item">
-        <a href="{{url_for('main.index', lang_code='en')}}">English</a>
-      </li>
-      {% elif g.locale == 'en' %}
-      <li class="list-inline-item">
-        <a href="{{url_for('main.index', lang_code='es')}}">Español</a>
-      </li>
-      {% endif %}
-    </ul>
     <ul class="list-unstyled list-inline px-2 mb-3">
-      <li class="list-inline-item"><a href="/about">{{_('0_footer_tos')}}</a> {{nav_item_sep}}</li>
-      <li class="list-inline-item"><a href="/about">{{_('0_footer_priv')}}</a> {{nav_item_sep}}</li>
-      <li class="list-inline-item"><a href="/about">{{_('0_footer_contact')}}</a></li>
+      <li class="list-inline-item"><a href="/about">About this site</a>{{nav_item_sep}}</li>
+      <li class="list-inline-item"><a href="/privacy-policy">Privacy Policy</a> {{nav_item_sep}}</li>
+      <li class="list-inline-item"><a href="https://www.8by8.us/">Contact Us</a></li>
     </ul>
-    <div class="px-2 mb-3"><a href="/about">{{_('0_footer_about_us')}}</a></div>
     <div class="footer-copyright py-2 fs-12">
-      <a href="http://blueprintkansas.org/">Copyright © 2021 8BY8</a>
+      <a href="https://www.8by8.us/contact">Copyright © 2021 8BY8</a>
     </div>
   </footer>
   {% endblock %}
