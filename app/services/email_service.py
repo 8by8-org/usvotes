@@ -177,6 +177,8 @@ class EmailService():
         msgAlternative = MIMEMultipart('Seems like your emailing service doesn\'t support HTML :(')
         message.attach(msgAlternative)
 
+        btn1Link = 'https://challenge.8by8.us/progress'
+        btn2Link = 'https://challenge.8by8.us/actions'
         paragraph = content['p1']
         if type == 'badgeEarned':
             content['img2'] = 'img/daysleft' + daysLeft + '.png'
@@ -208,8 +210,20 @@ class EmailService():
             buttonSize = '14'
         else:
             buttonSize = '16'
+        if type == 'playerWelcome':
+            btn2Link = 'https://challenge.8by8.us/progress'
+            btn1Link = 'https://challenge.8by8.us/actions'
         # Make HTML for email, inputting all the variable content
         # make sure to escape curly braces by doubling them {{}}
+        # No Email Settings or Unsubscribe in alpha
+        '''
+        <div class="settingscontainer">
+            <a href="https://www.8by8.us/">Unsubscribe</a>
+            <hr class="vr">
+            <a href="https://www.8by8.us/">Email settings</a>
+        </div>
+        '''
+
         html = '''<html>
         <head>
         <style>
@@ -271,6 +285,7 @@ class EmailService():
                 border-top-left-radius:2.3em 100%;
                 border-bottom-left-radius:2.3em 100%;
                 border-bottom-right-radius:2.3em 100%;
+                cursor: pointer;
             }}
             .btn1, btn2 {{
                 font-size:{buttonSize}pt;
@@ -284,6 +299,7 @@ class EmailService():
                 background-color:black;
                 color:white;
                 margin-top: 0.7em;
+                margin-bottom: 1.5em;
             }}
             a {{
                 color:black !important;
@@ -348,19 +364,19 @@ class EmailService():
         </div>
         <img class="img1 {img1Class}" src="cid:image1">
         <div>
+        <a href="{btn1Link}" >
             <button class="btn1">{btn1}</button>
+        </a>
         </div>
         <hr class="divider" width="25%">
         <h2>{h2}</h2>
         <img class="img2 {img2Class}" src="cid:image2">
         <p><b>{daysLeft}</b>{p2}</p>
         <p><b>{badgesLeft}</b>{p3}</p>
+        <a class="abtn2" href="{btn2Link}">
         <button class="btn2">{btn2}</button>
-        <div class="settingscontainer">
-            <a href="https://www.8by8.us/">Unsubscribe</a>
-            <hr class="vr">
-            <a href="https://www.8by8.us/">Email settings</a>
-        </div>
+        </a>
+        
         </div>
         </body>
         <footer>
@@ -383,8 +399,8 @@ class EmailService():
             </p>
         </footer>
         </html>'''.format(buttonSize=buttonSize, h1=content['h1'], p1=paragraph, endDate=endDateStr, firstName=firstName.upper(), img1Class=content['img1Class'], 
-                          btn1=content['btn1'], h2=content['h2'], img2Class=content['img2Class'], daysLeft=daysLeft,
-                          p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], btn2=content['btn2'])
+                          btn1Link=btn1Link, btn1=content['btn1'], h2=content['h2'], img2Class=content['img2Class'], daysLeft=daysLeft,
+                          p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], btn2Link=btn2Link, btn2=content['btn2'])
         msgText = MIMEText(html, 'html')
         msgAlternative.attach(msgText)
 
@@ -451,6 +467,15 @@ class EmailService():
         msgAlternative.attach(msgText)
 
         # We reference the img in the IMG SRC attribute by the ID we give it below
+        # No Email Settings or Unsubscribe for alpha
+        '''
+        <div class="settingscontainer">
+            <a href="https://www.8by8.us/">Unsubscribe</a>
+            <hr class="vr">
+            <a href="https://www.8by8.us/">Email settings</a>
+        </div>
+        '''
+
         html = '''<html>
         <head>
         <style>
@@ -558,12 +583,10 @@ class EmailService():
         <p>
             Come back to 8by8 and take another action for the AAPI community!
         </p>
+        <a href='https://challenge.8by8.us/'>
         <button>LEARN MORE</button>
-        <div class="settingscontainer">
-            <a href="https://www.8by8.us/">Unsubscribe</a>
-            <hr class="vr">
-            <a href="https://www.8by8.us/">Email settings</a>
-        </div>
+        </a>
+        
         </div>
         </body>
         <footer>
