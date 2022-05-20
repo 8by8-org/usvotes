@@ -38,6 +38,8 @@ def create_app(script_info):
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     default_handler.setFormatter(formatter)
 
+    
+
     @babel.localeselector
     def get_locale():
         from app.main.helpers import guess_locale
