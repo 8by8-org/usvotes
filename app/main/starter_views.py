@@ -12,12 +12,22 @@ from app.services.email_service import EmailService
 from flask_cors import cross_origin
 
 from datetime import datetime, timedelta
+from datetime import date
 from apscheduler.schedulers.background import BackgroundScheduler
 #from google.cloud import scheduler_v1
 import os
 
 import tracemalloc
 tracemalloc.start(10)
+
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+
+cred = credentials.Certificate('by8-318322-9aac6ae02900.json')
+firebase_admin.initialize_app(cred)
+
+db = firestore.client()
 
 # backend api endpoint for checking voter registration status
 @main.route('/registered', strict_slashes=False, methods=["POST"])
@@ -158,8 +168,6 @@ def reg():
             error = error + ', ' + missingParams[i]
         resp = jsonify(error=error)
         return make_response(resp, 400)
-    # check if the address is valid (via USPS address verification)
-    # instead of an error, send a warning if address is invalid right after email is sent
     form = FormVR3(
         addr = requestData.get('street'),
         city = requestData.get('city'),
@@ -168,7 +176,7 @@ def reg():
     )
     usps_api = USPS_API(form.data)
     validated_addresses = usps_api.validate_addresses()
-    
+
     if otherErrors:
         error = otherErrors[0]
         for i in range(1, len(otherErrors)):
@@ -210,6 +218,8 @@ def reg():
         subject = 'Here’s your voter registration form'
         messageWithAttachment = emailServ.create_message_with_attachment(to, subject, img)
         emailServ.send_message(messageWithAttachment)
+        # previously checked if the address is valid (via USPS address verification)
+        # instead of an error, send a warning if address is invalid right after email is sent
         if not validated_addresses:
             return { 'status': 'email sent', 'warning': '(street, city, state, zip) do not form a valid address' }
     return { 'status': 'email sent' }
@@ -264,18 +274,6 @@ def email():
     try:
         message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, firstName, avatar, isChallenger)
         emailServ.send_message(message)
-        if type == 'challengerWelcome':
-            # Start the scheduler
-            #sched = BackgroundScheduler()
-            #sched.start()
-
-            currDay = datetime.today()
-            #challengeEnd = currDay + timedelta(days=8)
-
-            # Store the job in a variable in case we want to cancel it.
-            # The job will be executed on the day the challenge ends
-            
-            #job = sched.add_job(delay_send, 'date', run_date=challengeEnd, args=[emailTo])
         return { 'status': 'email sent' }
     except ValueError: # value error if email type provided by user is not valid
         resp = jsonify(error='invalid template type, valid types include: challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder')
@@ -284,61 +282,87 @@ def email():
         resp = jsonify(error='invalid email: ' + emailTo)
         return make_response(resp, 400)
 
-def delay_send(emailTo):
-    # Initialize email service that uses Gmail API 
-    emailServ = EmailService()
-    message = emailServ.create_template_message(emailTo, 'challengeIncomplete')
-    emailServ.send_message(message)
-    return 'delayed email sent'
+@main.route('/challengeIncomplete', strict_slashes=False, methods=['POST', 'GET'])
+@cross_origin(origin='*')
+def challengeIncomplete():
+    # Firestore db is initiallized globally
+    users_ref = db.collection('users')
+    docs = users_ref.stream()
+    numSent = 0
+    emailServ = None
+    for doc in docs:
+        if 'challengeEndDate' in doc.to_dict() and isinstance(doc.to_dict()['challengeEndDate'], datetime):
+            if doc.to_dict()['challengeEndDate'].date() == datetime.today().date():
+                '''
+                what doc.to_dict() looks like:
+                {'completedActionForChallenger': False, 'avatar': 4, 'invitedBy': '123randomnum123', 'isRegisteredVoter': False, 'inviteCode': '123random123', 'name': 'Person', 'notifyElectionReminders': False, 'badges': [], 'lastActive': DatetimeWithNanoseconds(2022, 3, 19, 16, 46, 22, 375000, tzinfo=<UTC>), 'challengeEndDate': DatetimeWithNanoseconds(2022, 3, 27, 16, 46, 20, 237000, tzinfo=<UTC>), 'sharedChallenge': False, 'email': 'asdf@skdfjs.com', 'startedChallenge': True}
+                '''
+                emailTo = doc.to_dict()['email']
+                try:
+                    # Initialize email service that uses Gmail API 
+                    if emailServ is None:
+                        emailServ = EmailService()
+                    message = emailServ.create_template_message(emailTo, 'challengeIncomplete')
+                    emailServ.send_message(message)
+                    numSent += 1
+                except ValueError as err: # value error if email type provided by user is not valid
+                    resp = jsonify(error=err)
+                    return make_response(resp, 400)
+                except Exception as e:
+                    resp = jsonify(error='invalid email: ' + emailTo)
+                    return make_response(resp, 400)
+    return { 'status': 'number of emails sent: ' + str(numSent) }
 
-'''
-def create_scheduled_job():
-    client = scheduler_v1.CloudSchedulerClient.from_service_account_info({
-        "type": "service_account",
-        "project_id": os.getenv('PROJECT_ID'),
-        "private_key_id": os.getenv('PRIVATE_KEY_ID'),
-        "private_key": os.getenv('PRIVATE_KEY'),
-        "client_email": os.getenv('CLIENT_EMAIL'),
-        "client_id": os.getenv('CLIENT_ID_GCS'),
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/emailscheduler%40by8-318322.iam.gserviceaccount.com"
-        }
+
+# backend api endpoint for checking voter registration status
+@main.route('/validateAddress', strict_slashes=False, methods=["POST"])
+@cross_origin(origin='*')
+def validateAddress():
+    # accept JSON data, default to Form data if no JSON in request
+    if request.json:
+        requestData = request.json
+    else:
+        requestData = request.form
+    # do error checking
+    missingParams = []
+    otherErrors = []
+    if 'state' not in requestData:
+        missingParams.append('state')
+    elif len(requestData.get('state')) != 2:
+        otherErrors.append('state must be 2 letter abbreviation')
+    if 'city' not in requestData:
+        missingParams.append('city')
+    if 'street' not in requestData:
+        missingParams.append('street')
+    if 'zip' not in requestData:
+        missingParams.append('zip')
+    elif len(requestData.get('zip')) != 5:
+        otherErrors.append('zip must be 5 digits')
+    if missingParams:
+        error = 'Missing parameters: '
+        error += missingParams[0]
+        for i in range(1, len(missingParams)):
+            error = error + ', ' + missingParams[i]
+        resp = jsonify(error=error)
+        return make_response(resp, 400)
+    # check if address is valid
+    form = FormVR3(
+        addr = requestData.get('street'),
+        city = requestData.get('city'),
+        state = requestData.get('state'),
+        zip = requestData.get('zip'),
     )
-
-    parent= client.location_path(os.getenv('PROJECT_ID'),'us-west1')
-
-    job={"name":"projects/your-project/locations/app-engine-location/jobs/traing_for_model",
-        "description":"this is for testing training model",
-        "http_target": {"uri":"https://us-central1-gerald-automl-test.cloudfunctions.net/automl-trainmodel-1-test-for-cron-job"},
-        "schedule":"0 10 * * *",
-        "time_zone":"America/Los_Angeles",
-        }
-    job = {
-        "name": "",
-        "http_target": {
-            "http_method": "POST",
-            "uri": uri,
-            "headers": {"Content-Type": "application/json"},
-            "body": {'email': 'tylerwong2000@gmail.com',
-                    'type': 'challengeIncomplete',
-                    'avatar': '2',
-                    'daysLeft': '3',
-                    'badgesLeft': '4',
-                    'firstName': 'Wesley'},
-        },
-        "schedule": "* * * * *",
-        "time_zone":"America/Los_Angeles",
-    }
-
-    # https://googleapis.dev/python/cloudscheduler/latest/scheduler_v1/cloud_scheduler.html
-    # use update_job to update the schedule of the job to sent emails
-
-    response = client.create_job(parent, job)
-
-    training_job= client.create_job(parent,job)
-'''
+    usps_api = USPS_API(form.data)
+    validated_addresses = usps_api.validate_addresses()
+    if not validated_addresses:
+        otherErrors.append('(street, city, state, zip) do not form a valid address')
+    if otherErrors:
+        error = otherErrors[0]
+        for i in range(1, len(otherErrors)):
+            error = error + ', ' + otherErrors[i]
+        resp = jsonify(error=error)
+        return make_response(resp, 400)
+    return { 'status': 'valid address' }
 
 ''' Old endpoints from KSVotes '''
 # default route
