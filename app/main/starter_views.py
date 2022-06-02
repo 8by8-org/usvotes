@@ -11,7 +11,7 @@ from app.services.usps_api import USPS_API
 from app.services.email_service import EmailService
 from flask_cors import cross_origin
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, tzinfo
 from datetime import date
 from apscheduler.schedulers.background import BackgroundScheduler
 #from google.cloud import scheduler_v1
@@ -292,7 +292,9 @@ def challengeIncomplete():
     emailServ = None
     for doc in docs:
         if 'challengeEndDate' in doc.to_dict() and isinstance(doc.to_dict()['challengeEndDate'], datetime):
-            if doc.to_dict()['challengeEndDate'].date() == datetime.today().date():
+            # Convert challengeEndTime to UTC-7 (PST)
+            endDateTime = doc.to_dict()['challengeEndDate'] - timedelta(hours=7)
+            if endDateTime.date() == datetime.today().date() and len(doc.to_dict()['badges']) < 8:
                 '''
                 what doc.to_dict() looks like:
                 {'completedActionForChallenger': False, 'avatar': 4, 'invitedBy': '123randomnum123', 'isRegisteredVoter': False, 'inviteCode': '123random123', 'name': 'Person', 'notifyElectionReminders': False, 'badges': [], 'lastActive': DatetimeWithNanoseconds(2022, 3, 19, 16, 46, 22, 375000, tzinfo=<UTC>), 'challengeEndDate': DatetimeWithNanoseconds(2022, 3, 27, 16, 46, 20, 237000, tzinfo=<UTC>), 'sharedChallenge': False, 'email': 'asdf@skdfjs.com', 'startedChallenge': True}
