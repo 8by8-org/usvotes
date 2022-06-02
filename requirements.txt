@@ -46,3 +46,4 @@ google-auth-oauthlib==0.4.6
 googleapis-common-protos==1.54.0
 Wand==0.6.7
 APScheduler==3.9.1
+firebase-admin==5.2.0
