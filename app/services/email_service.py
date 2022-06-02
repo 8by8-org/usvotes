@@ -268,10 +268,14 @@ class EmailService():
                 opacity:0.999;
             }}
             .imgtext {{
-                font-size:14pt;
+                font-size:13pt;
                 margin-top:153px;
                 margin-right: 8px;
                 display:inline-block;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                width: 138px
             }}
             button {{
                 font-family: 'Oswald', sans-serif;
@@ -521,6 +525,7 @@ class EmailService():
                 border-top-left-radius:2.3em 100%;
                 border-bottom-left-radius:2.3em 100%;
                 border-bottom-right-radius:2.3em 100%;
+                margin-bottom: 1.5em;
             }
             a {
                 color:black !important;
