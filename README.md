@@ -163,7 +163,7 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
 }
 ```
 ### POST /validateAddress/
-This endpoint is used to check if an address is valid or not according to USPS. Note: success response type is boolean.
+This endpoint is used to check if an address is valid or not according to USPS.
 #### Fields:
 * state
 * city
