@@ -347,6 +347,12 @@ def validateAddress():
             error = error + ', ' + missingParams[i]
         resp = jsonify(error=error)
         return make_response(resp, 400)
+    if otherErrors:
+        error = otherErrors[0]
+        for i in range(1, len(otherErrors)):
+            error = error + ', ' + otherErrors[i]
+        resp = jsonify(error=error)
+        return make_response(resp, 400)
     # check if address is valid
     form = FormVR3(
         addr = requestData.get('street'),
@@ -357,14 +363,8 @@ def validateAddress():
     usps_api = USPS_API(form.data)
     validated_addresses = usps_api.validate_addresses()
     if not validated_addresses:
-        otherErrors.append('(street, city, state, zip) do not form a valid address')
-    if otherErrors:
-        error = otherErrors[0]
-        for i in range(1, len(otherErrors)):
-            error = error + ', ' + otherErrors[i]
-        resp = jsonify(error=error)
-        return make_response(resp, 400)
-    return { 'status': 'valid address' }
+        return { 'isValid': False }
+    return { 'isValid': True }
 
 @main.route('/altEmail', strict_slashes=False, methods=['POST'])
 @cross_origin(origin='*')
