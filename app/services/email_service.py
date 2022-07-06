@@ -394,7 +394,7 @@ class EmailService():
         <p><b>{daysLeft}</b>{p2}</p>
         <p><b>{badgesLeft}</b>{p3}</p>
         <a class="abtn2" href="{btn2Link}">
-        <button class="btn2"><span>{btn2}</span></button>
+        <button class="btn2">{btn2}</button>
         </a>
         
         </div>
