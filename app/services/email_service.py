@@ -338,8 +338,8 @@ class EmailService():
             .socialmedia {{
                 margin: 24px
             }}
-            footer {{
-                background-color:black;
+            .footer {{
+                background-color: #101010;
                 color:white;
                 text-align:center;
                 padding:1.2em;
@@ -348,7 +348,7 @@ class EmailService():
                 p {{
                     font-size:1.2em !important;
                 }}
-                footer > p, .settingscontainer {{
+                .footer > p, .settingscontainer {{
                     font-size:1.0em !important;
                 }}
                 .img1 {{
@@ -384,8 +384,7 @@ class EmailService():
         </a>
         
         </div>
-        </body>
-        <footer>
+        <div class="footer">
             <div class="socialmedia">
                 <a href="https://www.facebook.com/8by8vote" target="_blank">
                     <img width="20" height="20" src="cid:facebook">
@@ -403,7 +402,8 @@ class EmailService():
             <p>
                 8BY8 is a nonprofit organization dedicated to stopping hate against Asian American Pacific Islander communities through voter registration and turnout.
             </p>
-        </footer>
+        </div>
+        </body>
         </html>'''.format(buttonSize=buttonSize, h1=content['h1'], p1=paragraph, endDate=endDateStr, firstName=firstName.upper(), img1Class=content['img1Class'], 
                           btn1Link=btn1Link, btn1=content['btn1'], h2=content['h2'], img2Class=content['img2Class'], daysLeft=daysLeft,
                           p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], btn2Link=btn2Link, btn2=content['btn2'])
@@ -450,9 +450,9 @@ class EmailService():
         msgImage.add_header('Content-ID', '<instagram>')
         message.attach(msgImage)
         
-        #raw_message = \
-        #    base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
-        #return {'raw': raw_message.decode('utf-8')}
+        raw_message = \
+           base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
+        return {'raw': raw_message.decode('utf-8')}
         return message.as_string()
 
             
