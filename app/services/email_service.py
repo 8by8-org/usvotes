@@ -230,8 +230,11 @@ class EmailService():
         <head>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Lato&family=Oswald&display=swap');
-            body {{
-                margin:0;
+            .app {{
+                margin: 0 auto;
+                max-width: 500px;
+                min-width: 375px;
+                background-color: white;
             }}
             h1 {{
                 font-size:22pt;
@@ -253,8 +256,7 @@ class EmailService():
                 font-size:1.1em;
             }}
             .img8by8 {{
-                max-width:420px;
-                max-height:296px;
+                width:100%;
             }}
             .img1 {{
                 max-width:16em;
@@ -352,6 +354,9 @@ class EmailService():
                 text-align:center;
                 padding:1.2em;
             }}
+            img {{
+                margin: 0 auto;
+            }}
             @media only screen and (max-width: 500px) {{
                 p {{
                     font-size:1.2em !important;
@@ -369,6 +374,7 @@ class EmailService():
         </style>
         </head>
         <body>
+        <div class="app">
         <div class="content">
         <img class="img8by8" src="cid:image0">
         <h1>{h1}</h1>
@@ -410,6 +416,7 @@ class EmailService():
             <p>
                 8BY8 is a nonprofit organization dedicated to stopping hate against Asian American Pacific Islander communities through voter registration and turnout.
             </p>
+        </div>
         </div>
         </body>
         </html>'''.format(buttonSize=buttonSize, h1=content['h1'], p1=paragraph, endDate=endDateStr, firstName=firstName.upper(), img1Class=content['img1Class'], 
