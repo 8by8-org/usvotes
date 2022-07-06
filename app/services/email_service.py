@@ -466,9 +466,8 @@ class EmailService():
         message.attach(msgImage)
         
         raw_message = \
-           base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
+            base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
         return {'raw': raw_message.decode('utf-8')}
-        return message.as_string()
 
             
     def create_message_with_attachment(self, to, subject, file):
@@ -668,7 +667,6 @@ class EmailService():
         mime_part.add_header('Content-Type', 'image/png; name="{}"'.format(file_name))
         message.attach(mime_part)
         
-        #raw_message = \
-        #    base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
-        #return {'raw': raw_message.decode('utf-8')}
-        return message.as_string()
+        raw_message = \
+            base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
+        return {'raw': raw_message.decode('utf-8')}
