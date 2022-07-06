@@ -162,6 +162,40 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
     "error": "for <type> emails, parameter(s) <field 1>, <field 2>, ... are required"
 }
 ```
+### POST /validateAddress/
+This endpoint is used to check if an address is valid or not according to USPS. Note: success response type is boolean.
+#### Fields:
+* state
+* city
+* street
+* zip
+#### Success responses (200):
+```
+{
+    "isValid": true
+}
+```
+```
+{
+    "isValid": false
+}
+```
+#### Error responses (400):
+```
+{
+    "error": "Missing parameters: <field 1>, <field 2>, ..."
+}
+```
+```
+{
+    "error": "state must be 2 letter abbreviation"
+}
+```
+```
+{
+    "error": "zip must be 5 digits"
+}
+```
 ## Repository and Environment Setup
 * [Database Setup](#database-setup)
 * [Setup & Installation](#setup-&-installation)
