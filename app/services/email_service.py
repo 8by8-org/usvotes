@@ -281,7 +281,7 @@ class EmailService():
             }}
             button {{
                 font-family: 'Oswald', sans-serif;
-                border: solid black 0.25rem;
+                border: solid #101010 0.25rem;
                 font-size:16pt;
                 padding:0.4em;
                 padding-left:1.4em;
@@ -293,22 +293,30 @@ class EmailService():
                 border-bottom-right-radius:2.3em 100%;
                 cursor: pointer;
             }}
-            .btn1, btn2 {{
+            .btn1, .btn2 {{
                 font-size:{buttonSize}pt;
             }}
             .btn1 {{
                 background: linear-gradient(90deg, #02DDC3, #FFED10);
-                color: black;
+                color: #101010;
                 margin-top: 0.8em;
             }}
             .btn2 {{
-                background-color:black;
+                background-color: #101010;
                 color:white;
                 margin-top: 0.7em;
                 margin-bottom: 1.5em;
             }}
+
+            .btn2 > span {{
+                color: white;
+                background-image: linear-gradient(90deg, #02DDC3, #FFED10);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;  
+            }}
+
             a {{
-                color:black !important;
+                color: #101010 !important;
                 font-weight: bold;
             }}
             .content {{
@@ -380,7 +388,7 @@ class EmailService():
         <p><b>{daysLeft}</b>{p2}</p>
         <p><b>{badgesLeft}</b>{p3}</p>
         <a class="abtn2" href="{btn2Link}">
-        <button class="btn2">{btn2}</button>
+        <button class="btn2"><span>{btn2}</span></button>
         </a>
         
         </div>
