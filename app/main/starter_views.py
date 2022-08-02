@@ -72,6 +72,7 @@ def registered():
     # check if address is valid
     form = FormVR3(
         addr = requestData.get('street'),
+        unit = requestData.get('unit'),
         city = requestData.get('city'),
         state = requestData.get('state'),
         zip = requestData.get('zip'),
@@ -169,6 +170,7 @@ def reg():
         return make_response(resp, 400)
     form = FormVR3(
         addr = requestData.get('street'),
+        unit = requestData.get('unit'),
         city = requestData.get('city'),
         state = requestData.get('state'),
         zip = requestData.get('zip'),
@@ -208,6 +210,74 @@ def reg():
         payload['06_idNumber'] = idNumber
         payload['00_citizen_yes'] = True
         payload['00_eighteenPlus_yes'] = True
+        # optional parameters
+        if 'unit' in requestData:
+            payload['02_aptLot'] = requestData.get('unit')
+        if 'name_middle' in requestData:
+             payload['01_middleName'] = requestData.get('name_middle')
+        if 'title' in requestData:
+            title = requestData.get('title').lower()
+            if title == 'mr.':
+                payload['01_prefix_mr'] = True
+            if title == 'mrs.':
+                payload['01_prefix_mrs'] = True
+            if title == 'miss':
+                payload['01_prefix_miss'] = True
+            if title == 'ms.':
+                payload['01_prefix_ms'] = True
+        if 'suffix' in requestData:
+            suffix = requestData.get('suffix').lower()
+            if suffix == 'jr.' or suffix == 'jr':
+                payload['01_suffix_jr'] = True
+            if suffix == 'sr.' or suffix == 'sr':
+                payload['01_suffix_sr'] = True
+            if suffix == 'ii':
+                payload['01_suffix_ii'] = True
+            if suffix == 'iii':
+                payload['01_suffix_iii'] = True
+            if suffix == 'iv':
+                payload['01_suffix_iv'] = True
+        if 'race' in requestData:
+            payload['08_raceEthnic'] = requestData.get('race')
+        if 'change_of_name' in requestData and requestData.get('change_of_name'):
+            payload['A_firstName'] = requestData.get('prev_name_first')
+            payload['A_lastName'] = requestData.get('prev_name_last')
+            if 'name_middle' in requestData:
+                payload['A_middleName'] = requestData.get('prev_name_middle')
+            if 'prev_title' in requestData:
+                title = requestData.get('prev_title').lower()
+                if title == 'mr.':
+                    payload['A_prefix_mr'] = True
+                if title == 'mrs.':
+                    payload['A_prefix_mrs'] = True
+                if title == 'miss':
+                    payload['A_prefix_miss'] = True
+                if title == 'ms.':
+                    payload['A_prefix_ms'] = True
+            if 'prev_suffix' in requestData:
+                suffix = requestData.get('prev_suffix').lower()
+                if suffix == 'jr.' or suffix == 'jr':
+                    payload['A_suffix_jr'] = True
+                if suffix == 'sr.' or suffix == 'sr':
+                    payload['A_suffix_sr'] = True
+                if suffix == 'ii':
+                    payload['A_suffix_ii'] = True
+                if suffix == 'iii':
+                    payload['A_suffix_iii'] = True
+                if suffix == 'iv':
+                    payload['A_suffix_iv'] = True
+        if 'change_of_address' in requestData and requestData.get('change_of_address'):
+            payload['B_homeAddress'] = requestData.get('prev_street')
+            payload['B_cityTown'] = requestData.get('prev_city')
+            payload['B_state'] = requestData.get('prev_state')
+            payload['B_zipCode'] = requestData.get('prev_zip')
+            if 'unit' in requestData:
+                payload['B_aptLot'] = requestData.get('prev_unit')
+        if 'diff_mail_address' in requestData and requestData.get('diff_mail_address'):
+            payload['03_mailAddress'] = requestData.get('mail_street')
+            payload['03_cityTown'] = requestData.get('mail_city')
+            payload['03_state'] = requestData.get('mail_state')
+            payload['03_zipCode'] = requestData.get('mail_zip')
         # fill out the voter registration form
         ffs = FormFillerService(payload=payload, form_name='/vr/en')
         img = ffs.as_image()

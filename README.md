@@ -12,6 +12,8 @@ This endpoint is used to check the voter registration status of a given person. 
 * name_last
 * dob
 * zip
+#### Optional Fields 
+* unit
 #### Success responses (200):
 ```
 {
@@ -71,6 +73,29 @@ This endpoint is used to fill out the [Federal Voter Registration Form](https://
 * eighteenPlus
 * party
 * idNumber
+#### Optional Fields 
+* unit
+* title (mr., mrs., miss, ms., sr., sra., srta.)
+* name_middle
+* suffix
+* race
+* change_of_name (a boolean value)
+* prev_title 
+* prev_name_first (required if change_of_name is true)
+* prev_name_middle
+* prev_name_last (required if change_of_name is true)
+* prev_suffix
+* change_of_address (a boolean value)
+* prev_state (required if change_of_address is true)
+* prev_city (required if change_of_address is true)
+* prev_street (required if change_of_address is true)
+* prev_zip (required if change_of_address is true)
+* prev_unit
+* diff_mail_address (a boolean value)
+* mail_state (required if diff_mail_address is true)
+* mail_city (required if diff_mail_address is true)
+* mail_street (required if diff_mail_address is true)
+* mail_zip (required if diff_mail_address is true)
 #### Success responses (200):
 If a success response is returned then an email is sent to the given email with a PDF of the filled out voter registration form
 ```
@@ -169,6 +194,8 @@ This endpoint is used to check if an address is valid or not according to USPS.
 * city
 * street
 * zip
+#### Optional Fields 
+* unit
 #### Success responses (200):
 ```
 {
