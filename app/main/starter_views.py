@@ -1,4 +1,6 @@
 from __future__ import print_function
+
+from rsa import verify
 from app.main import main
 from flask import g, url_for, render_template, request, redirect, session as http_session, abort, current_app, flash, jsonify, make_response
 from app.main.forms import *
@@ -323,6 +325,9 @@ def email():
     elif requestData.get('type') == 'challengeWon' and 'avatar' not in requestData:
         resp = jsonify(error='for ' + requestData.get('type') + ' emails, parameter avatar is required')
         return make_response(resp, 400)
+    elif requestData.get('type') == 'verifyEmail' and 'verifyLink' not in requestData:
+        resp = jsonify(error='for ' + requestData.get('type') + ' emails, parameter verifyLink is required')
+        return make_response(resp, 400)
     if missingParams:
         error = 'Missing parameters: '
         error += missingParams[0]
@@ -339,13 +344,14 @@ def email():
     firstName = requestData.get('firstName')
     avatar = requestData.get('avatar')
     isChallenger = requestData.get('isChallenger')
+    verifyLink = requestData.get('verifyLink')
     # Attempt to create the email template that was asked for
     try:
-        message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, firstName, avatar, isChallenger)
+        message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, firstName, avatar, isChallenger, verifyLink)
         emailServ.send_message(message)
         return { 'status': 'email sent' }
     except ValueError: # value error if email type provided by user is not valid
-        resp = jsonify(error='invalid template type, valid types include: challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder')
+        resp = jsonify(error='invalid template type, valid types include: challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder, verifyEmail')
         return make_response(resp, 400)
     except Exception as e:
         resp = jsonify(error='invalid email: ' + emailTo)
