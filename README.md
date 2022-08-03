@@ -151,7 +151,7 @@ If a success response is returned then an email is sent to the given email with 
 ```
 ### POST /email/
 This endpoint is used to send an email out based on a template type. Valid template types are:
-challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder
+challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder, verifyEmail
 #### Fields:
 * email
 * type
@@ -160,6 +160,7 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
 * firstName (required for registered and electionReminder)
 * daysLeft (required for badgeEarned)
 * badgesLeft (required for badgeEarned)
+* verifyLink (required for verifyEmail)
 #### Success responses (200):
 ```
 {
@@ -174,7 +175,7 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
 ```
 ```
 {
-    "error": "invalid template type, valid types include: challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder"
+    "error": "invalid template type, valid types include: challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome, registered, electionReminder, verifyEmail"
 }
 ```
 ```

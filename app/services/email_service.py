@@ -112,6 +112,20 @@ class EmailService():
             'p2': 'Come back to 8by8 and take another action for the AAPI community!',
             'p3': '',
             'btn2': 'TAKE ANOTHER ACTION'
+        },
+        'verifyEmail': {
+            'subject': 'Verify your email with 8by8',
+            'h1': 'LET’S FIRST VERIFY YOUR EMAIL.',
+            'p1': 'For your security, we ask that you verify your recent 8by8 Challenge sign in. Click on the “Verify Now” button below to sign in!',
+            'img1': '',
+            'img1Class': '',
+            'btn1': 'VERIFY NOW',
+            'h2': 'WHY 8BY8?',
+            'img2': '',
+            'img2Class': 'hidden',
+            'p2': 'Your participation is important to closing the voter registration gap in the AAPI community.',
+            'p3': '',
+            'btn2': 'LEARN MORE'
         }
     }
 
@@ -162,7 +176,7 @@ class EmailService():
             print('An error occurred: {}'.format(e))
             raise e
     
-    def create_template_message(self, to, type, daysLeft='', badgesLeft='', firstName='', avatar=None, isChallenger=''):
+    def create_template_message(self, to, type, daysLeft='', badgesLeft='', firstName='', avatar=None, isChallenger='', verifyLink=''):
         # Depending on the type of email, get the contents
         if type in self.emailTypes:
             content = self.emailTypes[type]
@@ -182,6 +196,8 @@ class EmailService():
         btn1Link = 'https://challenge.8by8.us/progress'
         btn2Link = 'https://challenge.8by8.us/actions'
         paragraph = content['p1']
+        img0 = ''
+        verifyP = ''
         if type == 'badgeEarned':
             content['img2'] = 'img/daysleft' + daysLeft + '.png'
             if daysLeft == '1':
@@ -215,6 +231,12 @@ class EmailService():
         if type == 'playerWelcome':
             btn2Link = 'https://challenge.8by8.us/progress'
             btn1Link = 'https://challenge.8by8.us/actions'
+        if type == 'verifyEmail':
+            verifyP = 'Or paste this link into your browser:'
+            btn1Link = verifyLink
+            img0 = 'img/party.png'
+        else:
+            verifyLink = ''
         # Make HTML for email, inputting all the variable content
         # make sure to escape curly braces by doubling them {{}}
         # No Email Settings or Unsubscribe in alpha
@@ -254,6 +276,11 @@ class EmailService():
             }}
             footer > p {{
                 font-size:1.1em;
+            }}
+            .minip {{
+                font-size:10pt;
+                margin-left:15%;
+                margin-right:15%;
             }}
             .img8by8 {{
                 width:100%;
@@ -376,7 +403,8 @@ class EmailService():
         <body>
         <div class="app">
         <div class="content">
-        <img class="img8by8" src="cid:image0">
+        <img class="img8by8" src="cid:image8">
+        <img class="img1 {img1Class}" src="cid:image0">
         <h1>{h1}</h1>
         <p>{p1}{endDate}</p>
         <div class="imgcontainer">
@@ -387,6 +415,8 @@ class EmailService():
         <a href="{btn1Link}" >
             <button class="btn1">{btn1}</button>
         </a>
+        <p class="minip">{miniP}</p>
+        <p class="minip">{miniLink}</p>
         </div>
         <hr class="divider" width="25%">
         <h2>{h2}</h2>
@@ -420,8 +450,8 @@ class EmailService():
         </div>
         </body>
         </html>'''.format(buttonSize=buttonSize, h1=content['h1'], p1=paragraph, endDate=endDateStr, firstName=firstName.upper(), img1Class=content['img1Class'], 
-                          btn1Link=btn1Link, btn1=content['btn1'], h2=content['h2'], img2Class=content['img2Class'], daysLeft=daysLeft,
-                          p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], btn2Link=btn2Link, btn2=content['btn2'])
+                          btn1Link=btn1Link, btn1=content['btn1'], miniP=verifyP, miniLink=verifyLink, h2=content['h2'], img2Class=content['img2Class'], 
+                          daysLeft=daysLeft, p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], btn2Link=btn2Link, btn2=content['btn2'])
         msgText = MIMEText(html, 'html')
         msgAlternative.attach(msgText)
 
@@ -430,10 +460,17 @@ class EmailService():
         msgImage = MIMEImage(fp.read())
         fp.close()
         # Define the image's ID as referenced above
-        msgImage.add_header('Content-ID', '<image0>')
+        msgImage.add_header('Content-ID', '<image8>')
         message.attach(msgImage)
 
         # add images (img1, img2) if they are part of the template type
+        if img0 != '':
+            fp = open(img0, 'rb')
+            msgImage = MIMEImage(fp.read())
+            fp.close()
+            # Define the image's ID as referenced above
+            msgImage.add_header('Content-ID', '<image0>')
+            message.attach(msgImage)
         if content['img1']:
             fp = open(content['img1'], 'rb')
             msgImage = MIMEImage(fp.read())
