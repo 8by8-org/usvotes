@@ -322,9 +322,6 @@ def email():
     elif (requestData.get('type') == 'registered' or requestData.get('type') == 'electionReminder') and ('avatar' not in requestData or 'firstName' not in requestData):
         resp = jsonify(error='for ' + requestData.get('type') + ' emails, parameters avatar and firstName are required')
         return make_response(resp, 400)
-    elif requestData.get('type') == 'challengeWon' and 'avatar' not in requestData:
-        resp = jsonify(error='for ' + requestData.get('type') + ' emails, parameter avatar is required')
-        return make_response(resp, 400)
     elif requestData.get('type') == 'verifyEmail' and 'verifyLink' not in requestData:
         resp = jsonify(error='for ' + requestData.get('type') + ' emails, parameter verifyLink is required')
         return make_response(resp, 400)
@@ -345,9 +342,10 @@ def email():
     avatar = requestData.get('avatar')
     isChallenger = requestData.get('isChallenger')
     verifyLink = requestData.get('verifyLink')
+    partnerLinks = requestData.get('partnerLinks')
     # Attempt to create the email template that was asked for
     try:
-        message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, firstName, avatar, isChallenger, verifyLink)
+        message = emailServ.create_template_message(emailTo, type, daysLeft, badgesLeft, firstName, avatar, isChallenger, verifyLink, partnerLinks)
         emailServ.send_message(message)
         return { 'status': 'email sent' }
     except ValueError: # value error if email type provided by user is not valid
@@ -467,9 +465,6 @@ def altemail():
             return make_response(resp, 400)
     elif (requestData.get('type') == 'registered' or requestData.get('type') == 'electionReminder') and ('avatar' not in requestData or 'firstName' not in requestData):
         resp = jsonify(error='for ' + requestData.get('type') + ' emails, parameters avatar and firstName are required')
-        return make_response(resp, 400)
-    elif requestData.get('type') == 'challengeWon' and 'avatar' not in requestData:
-        resp = jsonify(error='for ' + requestData.get('type') + ' emails, parameter avatar is required')
         return make_response(resp, 400)
     if missingParams:
         error = 'Missing parameters: '
