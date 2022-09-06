@@ -44,18 +44,18 @@ class EmailService():
             'btn2': 'INVITE FRIENDS'
         },
         'challengeWon': {
-            'subject': 'You won the 8by8 Challenge!',
-            'h1': 'CONGRATULATIONS!',
-            'p1': 'You earned all 8 badges! We really appreciate you and your friends’ efforts in helping the AAPI community!',
-            'img1': 'img/badges8.png',
-            'img1Class': '',
-            'btn1': 'CHECK OUT YOUR BADGES',
-            'h2': 'TELL YOUR FRIENDS',
+            'subject': '8by8 Rewards',
+            'h1': 'YOUR REWARD',
+            'p1': "Woo! You completed the 8by8 Challenge, getting 8 friends to register to vote in 8 days. You've helped uplift AAPI voices. Go you! Enjoy your reward, and keep spreading the word!",
+            'img1': '',
+            'img1Class': 'hidden',
+            'btn1': 'GO TO REWARDS',
+            'h2': 'WHY 8BY8?',
             'img2': '',
             'img2Class': 'hidden',
-            'p2': 'Share your achievement and encourage others to take the challenge as well! ',
+            'p2': 'Your participation is important to closing the voter registration gap in the AAPI community.',
             'p3': '',
-            'btn2': 'SHARE WITH FRIENDS'
+            'btn2': 'LEARN MORE'
         },
         'challengeIncomplete': {
             'subject': 'Restart your 8by8 Challenge',
@@ -176,7 +176,7 @@ class EmailService():
             print('An error occurred: {}'.format(e))
             raise e
     
-    def create_template_message(self, to, type, daysLeft='', badgesLeft='', firstName='', avatar=None, isChallenger='', verifyLink=''):
+    def create_template_message(self, to, type, daysLeft='', badgesLeft='', firstName='', avatar=None, isChallenger='', verifyLink='', partners=''):
         # Depending on the type of email, get the contents
         if type in self.emailTypes:
             content = self.emailTypes[type]
@@ -198,6 +198,8 @@ class EmailService():
         paragraph = content['p1']
         img0 = ''
         verifyP = ''
+        ourPartners = ''
+        divider = '<hr class="divider" width="25%">'
         if type == 'badgeEarned':
             content['img2'] = 'img/daysleft' + daysLeft + '.png'
             if daysLeft == '1':
@@ -218,25 +220,40 @@ class EmailService():
         else:
             endDateStr = ''
         if type == 'registered' or type == 'electionReminder':
+            firstName = '<div class="imgcontainer"><h2 class="imgtext">' + firstName.upper() + '</h2></div>'
             content['img1'] = 'img/avatar' + avatar + '.png'
-            if isChallenger and isChallenger.lower() == 'true':
+            if isChallenger and isChallenger.lower() != 'false':
                 index = content['p1'].find('Your friend has')
                 paragraph = content['p1'][:index]
         else:
             firstName = ''
-        if type == 'badgeEarned' or type == 'challengeWon':
+        if type == 'badgeEarned':
             buttonSize = '14'
         else:
             buttonSize = '16'
-        if type == 'playerWelcome':
+        if type == 'playerWelcome' or (type == 'challengeWon' and (not isChallenger or isChallenger == 'false')):
             btn2Link = 'https://challenge.8by8.us/progress'
             btn1Link = 'https://challenge.8by8.us/actions'
+            content['p1'] = "Woo! A friend you supported has won the 8by8 Challenge! You've helped uplift AAPI voices. Go you! Enjoy your reward, and keep spreading the word!"
         if type == 'verifyEmail':
             verifyP = 'Or paste this link into your browser:'
             btn1Link = verifyLink
             img0 = 'img/party.png'
         else:
             verifyLink = ''
+        if type == 'challengeWon':
+            divider = ''
+            if partners:
+                ourPartners = 'OUR PARTNERS'
+                urls = partners.split(',')
+                partners = ''
+                for index, url in enumerate(urls):
+                    if index % 2 == 0:
+                        partners += '<img class="partner" src="' + url + '">'
+                    else:
+                        partners += '<img class="partner leftmarg" src="' + url + '">'
+        else:
+            partners = ''
         # Make HTML for email, inputting all the variable content
         # make sure to escape curly braces by doubling them {{}}
         # No Email Settings or Unsubscribe in alpha
@@ -277,6 +294,16 @@ class EmailService():
             footer > p {{
                 font-size:1.1em;
             }}
+            .head1 {{
+                margin-top:6%;
+            }}
+            .leftmarg {{
+                margin-left: 2%;
+            }}
+            .contain {{
+                display: grid;
+                align-items: center;
+            }}
             .minip {{
                 font-size:10pt;
                 margin-left:15%;
@@ -292,6 +319,10 @@ class EmailService():
             .img2 {{
                 max-width:252px;
                 max-height:179px;
+            }}
+            .partner {{
+                max-width:220px;
+                max-height:220px;
             }}
             .imgcontainer {{
                 max-height:0;
@@ -397,6 +428,12 @@ class EmailService():
                 .img2 {{
                     max-width:13em;
                 }}
+                .partner {{
+                    max-width:11em;
+                }}
+                .head1 {{
+                    margin-top:8%;
+                }}
             }}
         </style>
         </head>
@@ -407,18 +444,18 @@ class EmailService():
         <img class="img1 {img1Class}" src="cid:image0">
         <h1>{h1}</h1>
         <p>{p1}{endDate}</p>
-        <div class="imgcontainer">
-            <h2 class="imgtext">{firstName}</h2>
-        </div>
+        {firstName}
         <img class="img1 {img1Class}" src="cid:image1">
         <div>
         <a href="{btn1Link}" >
             <button class="btn1">{btn1}</button>
         </a>
+        <h1 class="head1">{h1Partner}</h1>
+        {partners}
         <p class="minip">{miniP}</p>
         <p class="minip">{miniLink}</p>
         </div>
-        <hr class="divider" width="25%">
+        {div}
         <h2>{h2}</h2>
         <img class="img2 {img2Class}" src="cid:image2">
         <p><b>{daysLeft}</b>{p2}</p>
@@ -449,9 +486,10 @@ class EmailService():
         </div>
         </div>
         </body>
-        </html>'''.format(buttonSize=buttonSize, h1=content['h1'], p1=paragraph, endDate=endDateStr, firstName=firstName.upper(), img1Class=content['img1Class'], 
-                          btn1Link=btn1Link, btn1=content['btn1'], miniP=verifyP, miniLink=verifyLink, h2=content['h2'], img2Class=content['img2Class'], 
-                          daysLeft=daysLeft, p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], btn2Link=btn2Link, btn2=content['btn2'])
+        </html>'''.format(buttonSize=buttonSize, h1=content['h1'], p1=paragraph, endDate=endDateStr, firstName=firstName, img1Class=content['img1Class'], 
+                          btn1Link=btn1Link, btn1=content['btn1'], h1Partner=ourPartners, partners=partners, miniP=verifyP, miniLink=verifyLink, div=divider,
+                          h2=content['h2'], img2Class=content['img2Class'], daysLeft=daysLeft, p2=content['p2'], badgesLeft=badgesLeft, p3=content['p3'], 
+                          btn2Link=btn2Link, btn2=content['btn2'])
         msgText = MIMEText(html, 'html')
         msgAlternative.attach(msgText)
 

@@ -156,11 +156,13 @@ challengerWelcome, badgeEarned, challengeWon, challengeIncomplete, playerWelcome
 * email
 * type
 #### Optional Fields (required for certain email types)
-* avatar (ex: 1, 2, 3, 4) (required for badgeEarned, challengeWon, registered, and electionReminder)
+* avatar (ex: 1, 2, 3, 4) (required for badgeEarned, registered, and electionReminder)
 * firstName (required for registered and electionReminder)
 * daysLeft (required for badgeEarned)
 * badgesLeft (required for badgeEarned)
 * verifyLink (required for verifyEmail)
+* isChallenger (required for challengeWon, useful for registered and electionReminder)
+* partnerLinks (for challengeWon, must be a comma delimited string of src URLs for images)
 #### Success responses (200):
 ```
 {
