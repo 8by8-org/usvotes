@@ -252,6 +252,8 @@ class EmailService():
                         partners += '<img class="partner" src="' + url + '">'
                     else:
                         partners += '<img class="partner leftmarg" src="' + url + '">'
+            else:
+                partners = ''
         else:
             partners = ''
         # Make HTML for email, inputting all the variable content
