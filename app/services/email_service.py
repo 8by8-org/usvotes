@@ -248,10 +248,10 @@ class EmailService():
                 urls = partners.split(',')
                 partners = ''
                 for index, url in enumerate(urls):
-                    if index % 2 == 0:
-                        partners += '<img class="partner" src="' + url + '">'
-                    else:
-                        partners += '<img class="partner leftmarg" src="' + url + '">'
+                    if index % 2 == 0 and index + 1 == len(urls):
+                        partners += '<table class="center"><tr><td class="partnerTd" valign="top"><img class="partner" src="' + url + '"></td></tr></table>'
+                    if index % 2 == 1:
+                        partners += '<table class="center"><tr><td class="partnerTd" valign="top"><img class="partner" src="' + urls[index - 1] + '"></td><td class="partnerTd leftmarg" valign="top"><img class="partner" src="' + url + '"></td></tr></table>'
             else:
                 partners = ''
         else:
@@ -300,7 +300,7 @@ class EmailService():
                 margin-top:6%;
             }}
             .leftmarg {{
-                margin-left: 2%;
+                padding-left: 8%;
             }}
             .contain {{
                 display: grid;
@@ -325,6 +325,17 @@ class EmailService():
             .partner {{
                 max-width:220px;
                 max-height:220px;
+            }}
+            .partnerTd {{
+                vertical-align:middle;
+                height:auto;
+                padding-top:4%;
+                padding-bottom:4%
+            }}
+            .center {{
+                margin-left: auto;
+                margin-right: auto;
+                max-height:240px;
             }}
             .imgcontainer {{
                 max-height:0;
@@ -432,6 +443,7 @@ class EmailService():
                 }}
                 .partner {{
                     max-width:11em;
+                    max-height:11em;
                 }}
                 .head1 {{
                     margin-top:8%;
