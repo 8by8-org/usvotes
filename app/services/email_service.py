@@ -186,6 +186,7 @@ class EmailService():
 
         message = MIMEMultipart()
         message['to'] = to
+        message['from'] = '8by8 Challenge <8by8.app@gmail.com>'
         message['subject'] = content['subject']
 
         # Encapsulate the plain and HTML versions of the message body in an
