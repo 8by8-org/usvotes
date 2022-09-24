@@ -563,7 +563,7 @@ class EmailService():
     def create_message_with_attachment(self, to, subject, file):
         message = MIMEMultipart()
         message['to'] = to
-        #message['from'] = sender
+        message['from'] = '8by8 Challenge <8by8.app@gmail.com>'
         message['subject'] = subject
 
         # msg = MIMEText(message_text)
